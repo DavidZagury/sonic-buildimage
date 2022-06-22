@@ -86,7 +86,7 @@ function LogWarning() {
     fi
 }
 
-function LogNotice() {
+function LogNotice() {]
     if [[ "${VERBOSE_LEVEL}" -ge "${VERBOSE_NOTICE}" ]]; then
         echo "NOTICE: $*"
     fi
@@ -256,9 +256,17 @@ function ExitIfQEMU() {
     fi
 }
 
+function ExitIfPalladium() {
+    if [ -n "$(sx_sdk --info | grep -i Palladium | grep -i Yes)" ]; then
+        ExitSuccess "No FW upgrade for Palladium platform"
+    fi
+}
+
 ParseArguments "$@"
 
 ExitIfQEMU
+
+ExitIfPalladium
 
 WaitForDevice
 
