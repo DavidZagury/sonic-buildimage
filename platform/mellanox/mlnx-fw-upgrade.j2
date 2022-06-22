@@ -256,9 +256,17 @@ function ExitIfQEMU() {
     fi
 }
 
+function ExitIfPalladium() {
+    if [ -n "$(sx_sdk --info | grep -i Palladium | grep -i Yes)" ]; then
+        ExitSuccess "No FW upgrade for Palladium platform"
+    fi
+}
+
 ParseArguments "$@"
 
 ExitIfQEMU
+
+ExitIfPalladium
 
 WaitForDevice
 
