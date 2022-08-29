@@ -12,7 +12,7 @@
     branch = 202205
 [submodule "sonic-swss"]
 	path = src/sonic-swss
-	url = https://github.com/sonic-net/sonic-swss
+	url = https://github.com/DavidZagury/sonic-swss
     branch = 202205
 [submodule "src/p4c-bm/p4c-bm"]
 	path = platform/p4/p4c-bm/p4c-bm
