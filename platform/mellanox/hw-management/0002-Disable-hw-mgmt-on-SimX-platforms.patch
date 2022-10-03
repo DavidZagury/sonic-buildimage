@@ -15,7 +15,7 @@ index 5a9698c..364f906 100755
 @@ -51,19 +51,22 @@ if [ -d /var/run/hw-management ]; then
  	rm -fr /var/run/hw-management
  fi
- 
+
 -case $board_type in
 -VMOD0014)
 -	while [ ! -d /sys/devices/pci0000:00/0000:00:1f.0/NVSN2201:00/mlxreg-hotplug/hwmon ]
@@ -56,10 +56,10 @@ index ebfabb0..c0c038e 100755
 @@ -1495,6 +1495,13 @@ do_chip_down()
  	/usr/bin/hw-management-thermal-events.sh change hotplug_asic down %S %p
  }
- 
+
 +check_simx()
 +{
-+	if [ -n "$(lspci -vvv | grep SimX)" ]; then
++	if true; then
 +		exit 0
 +	fi
 +}
