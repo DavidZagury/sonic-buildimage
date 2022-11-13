@@ -156,7 +156,8 @@ if [[ $CONFIGURED_ARCH == amd64 ]]; then
 fi
 
 ## Sign the Linux kernel
-if [ "$SONIC_ENABLE_SECUREBOOT_SIGNATURE" = "y" ]; then
+# note: when flag SONIC_ENABLE_SECUREBOOT_SIGNATURE is enabled the Secure Upgrade flags should be disabled (no_sign) to avoid conflict between the features.
+if [ "$SONIC_ENABLE_SECUREBOOT_SIGNATURE" = "y" ] && [ "$SECURE_UPGRADE_MODE" != 'dev' ] && [ "$SECURE_UPGRADE_MODE" != "prod" ]; then
     if [ ! -f $SIGNING_KEY ]; then
        echo "Error: SONiC linux kernel signing key missing"
        exit 1
@@ -616,6 +617,56 @@ then
     sudo cp $DEBUG_SRC_ARCHIVE_FILE $FILESYSTEM_ROOT/src/
     sudo mkdir -p $FILESYSTEM_ROOT/debug
 
+fi
+
+# #################
+#   secure boot 
+# #################
+if [[ $SECURE_UPGRADE_MODE == 'dev' || $SECURE_UPGRADE_MODE == "prod" && $SONIC_ENABLE_SECUREBOOT_SIGNATURE != 'y' ]]; then
+    # note: SONIC_ENABLE_SECUREBOOT_SIGNATURE is a feature that signing just kernel, 
+    # SECURE_UPGRADE_MODE is signing all the boot component including kernel.
+    # its required to do not enable both features together to avoid conflicts.
+    echo "Secure Boot support build stage: Starting .."
+
+    # debian secure boot dependecies
+    sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install      \
+        shim-unsigned \
+        grub-efi
+    
+    if [ ! -f $SECURE_UPGRADE_DEV_SIGNING_CERT ]; then
+        echo "Error: SONiC SECURE_UPGRADE_DEV_SIGNING_CERT=$SECURE_UPGRADE_DEV_SIGNING_CERT key missing"
+        exit 1
+    fi
+
+    if [[ $SECURE_UPGRADE_MODE == 'dev' ]]; then
+        # development signing & verification 
+
+        if [ ! -f $SECURE_UPGRADE_DEV_SIGNING_KEY ]; then
+            echo "Error: SONiC SECURE_UPGRADE_DEV_SIGNING_KEY=$SECURE_UPGRADE_DEV_SIGNING_KEY key missing"
+            exit 1
+        fi
+
+        sudo bash scripts/signing_secure_boot_dev.sh $CONFIGURED_ARCH \
+                                                     $FILESYSTEM_ROOT \
+                                                     $LINUX_KERNEL_VERSION \
+                                                     $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                     $SECURE_UPGRADE_DEV_SIGNING_KEY
+    elif [[ $SECURE_UPGRADE_MODE == "prod" ]]; then
+        #  Here Vendor signing should be implemented
+        OUTPUT_SEC_BOOT_DIR=$FILESYSTEM_ROOT/boot
+        sudo bash scripts/signing_secure_boot_prod.sh $CONFIGURED_ARCH $FILESYSTEM_ROOT $LINUX_KERNEL_VERSION $OUTPUT_SEC_BOOT_DIR
+        
+        # verifying all EFI files and kernel modules in $OUTPUT_SEC_BOOT_DIR
+        bash scripts/secure_boot_signature_verification.sh -e $OUTPUT_SEC_BOOT_DIR \
+                                                        -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                        -k $FILESYSTEM_ROOT
+
+        # verifying vmlinuz file.
+        bash scripts/secure_boot_signature_verification.sh -e $FILESYSTEM_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH} \
+                                                        -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                        -k $FILESYSTEM_ROOT
+    fi
+    echo "Secure Boot support build stage: END."
 fi
 
 ## Update initramfs
