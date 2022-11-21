@@ -105,19 +105,9 @@ sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT
 ## grub signing
 ######################
 
-# Make a config grub file that reads a grub.cfg from the EFI directory
-# where the final grub binary is running.
-tmp_config=$(mktemp)
-cat <<EOF > $tmp_config
-configfile \$cmdpath/grub.cfg
-EOF
-
 # clean old files
-clean_file $FS_ROOT/boot/grub.cfg
 clean_file ${GRUB_EFI_SRC}-signed
 clean_file $FS_ROOT/boot/grub${EFI_ARCH}.efi
-
-sudo cp $tmp_config $FS_ROOT/boot/grub.cfg
 
 GRUB_DIR_SRC=$FS_ROOT/usr/lib/grub/x86_64-efi/monolithic/
 GRUB_EFI_SRC=$GRUB_DIR_SRC/grub${EFI_ARCH}.efi
