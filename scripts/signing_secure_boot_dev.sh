@@ -4,12 +4,11 @@
 ## Enable debug output for script & exit code when failing occurs 
 set -x -e
 
-usage() {
+print_usage() {
     cat <<EOF
 
 $0: Usage
-$0 <CONFIGURED_ARCH> <FS_ROOT> <LINUX_KERNEL_VERSION> <PEM_CERT> <PEM_PRIV_KEY>
-Usage example: efi-sign.sh priv-key.pem pub-key.pem shimx64.efi shimx64-signed.efi
+$0 -a <CONFIGURED_ARCH> -r <FS_ROOT> -l <LINUX_KERNEL_VERSION> -c <PEM_CERT> -p <PEM_PRIV_KEY>
 
 EOF
 }
@@ -17,19 +16,26 @@ EOF
 clean_file() {
     if [ -f $1 ]; then
         echo "clean old file named: $1"
-        echo "sudo rm $1"
-        sudo rm $1
-        echo "$?"
-        exit 1
+        echo "sudo rm -f $1"
+        sudo sudo rm -f $1
     fi
 }
 
+while getopts 'a:r:l:c:p:hv' flag; do
+  case "${flag}" in
+    a) CONFIGURED_ARCH="${OPTARG}" ;;
+    r) FS_ROOT="${OPTARG}" ;;
+    l) LINUX_KERNEL_VERSION="${OPTARG}" ;;
+    c) PEM_CERT="${OPTARG}" ;;
+    p) PEM_PRIV_KEY="${OPTARG}" ;;
+    v) VERBOSE='true' ;;
+    h) print_usage
+       exit 1 ;;
+  esac
+done
+if [ $OPTIND -eq 1 ]; then echo "no options were pass"; print_usage; exit 1 ;fi
+
 echo "$0 signing & verifying EFI files and Kernel Modules start ..."
-CONFIGURED_ARCH="$1"
-FS_ROOT="$2"
-LINUX_KERNEL_VERSION="$3"
-PEM_CERT="$4"
-PEM_PRIV_KEY="$5"
 
 if [ -z ${CONFIGURED_ARCH} ]; then
     echo "ERROR: CONFIGURED_ARCH=${CONFIGURED_ARCH} is empty"
@@ -85,13 +91,9 @@ clean_file ${MMX_EFI_SRC}-signed
 clean_file $FS_ROOT/boot/shim${EFI_ARCH}.efi
 clean_file $FS_ROOT/boot/mm${EFI_ARCH}.efi
 
-# clean old shim & mmx files in the env
-sudo rm -f ${SHIMX_EFI_SRC}-signed ${MMX_EFI_SRC}-signed \
-           $FS_ROOT/boot/shim${EFI_ARCH}.efi $FS_ROOT/boot/mm${EFI_ARCH}.efi
-
 echo "signing shim${EFI_ARCH}.efi & mm${EFI_ARCH}.efi from location: ${SHIM_DIR_SRC} .."
-sudo ${EFI_SIGNING} $PEM_PRIV_KEY $PEM_CERT ${SHIMX_EFI_SRC} ${SHIMX_EFI_SRC}-signed
-sudo ${EFI_SIGNING} $PEM_PRIV_KEY $PEM_CERT ${MMX_EFI_SRC} ${MMX_EFI_SRC}-signed
+sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${SHIMX_EFI_SRC} -s ${SHIMX_EFI_SRC}-signed
+sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${MMX_EFI_SRC} -s ${MMX_EFI_SRC}-signed
 
 # cp shim & mmx signed files to boot directory in the fs.
 sudo cp ${SHIMX_EFI_SRC}-signed $FS_ROOT/boot/shim${EFI_ARCH}.efi
@@ -105,18 +107,15 @@ sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT
 ## grub signing
 ######################
 
+GRUB_DIR_SRC=$FS_ROOT/usr/lib/grub/x86_64-efi/monolithic/
+GRUB_EFI_SRC=$GRUB_DIR_SRC/grub${EFI_ARCH}.efi
+
 # clean old files
 clean_file ${GRUB_EFI_SRC}-signed
 clean_file $FS_ROOT/boot/grub${EFI_ARCH}.efi
 
-GRUB_DIR_SRC=$FS_ROOT/usr/lib/grub/x86_64-efi/monolithic/
-GRUB_EFI_SRC=$GRUB_DIR_SRC/grub${EFI_ARCH}.efi
-
-# clean old grub files in the env
-sudo rm -f ${GRUB_EFI_SRC}-signed $FS_ROOT/boot/grub${EFI_ARCH}.efi
-
 echo "signing grub${EFI_ARCH}.efi from location: ${GRUB_EFI_SRC} .."
-sudo ${EFI_SIGNING} $PEM_PRIV_KEY $PEM_CERT ${GRUB_EFI_SRC} ${GRUB_EFI_SRC}-signed
+sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${GRUB_EFI_SRC} -s ${GRUB_EFI_SRC}-signed
 
 # cp signed grub to fs boot dir.
 sudo cp ${GRUB_EFI_SRC}-signed $FS_ROOT/boot/grub${EFI_ARCH}.efi
@@ -133,20 +132,17 @@ CURR_VMLINUZ=$FS_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH}
 # clean old files
 clean_file ${CURR_VMLINUZ}-signed
 
-# clean old grub files in the env
-sudo rm -f ${CURR_VMLINUZ}-signed
-
 echo "signing ${CURR_VMLINUZ} .."
-sudo ${EFI_SIGNING} $PEM_PRIV_KEY $PEM_CERT ${CURR_VMLINUZ} ${CURR_VMLINUZ}-signed
+sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${CURR_VMLINUZ} -s ${CURR_VMLINUZ}-signed
 
 # rename signed vmlinuz with the name vmlinuz without signed suffix
-sudo cp ${CURR_VMLINUZ}-signed ${CURR_VMLINUZ}
+sudo mv ${CURR_VMLINUZ}-signed ${CURR_VMLINUZ}
 
 sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e ${CURR_VMLINUZ}
 
 #########################
 # Kernel Modules signing
 #########################
-sudo bash scripts/signing_kernel_modules.sh $LINUX_KERNEL_VERSION ${PEM_CERT} ${PEM_PRIV_KEY}
+sudo bash scripts/signing_kernel_modules.sh -l $LINUX_KERNEL_VERSION -c ${PEM_CERT} -p ${PEM_PRIV_KEY} -k ${FS_ROOT}
 
 echo "$0 signing & verifying EFI files and Kernel Modules DONE"
