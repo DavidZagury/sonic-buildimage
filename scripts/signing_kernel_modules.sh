@@ -4,7 +4,7 @@
 usage() {
     cat <<EOF
 $0: # Display Help
-$0 <LINUX_KERNEL_VERSION> <PEM_CERT> <PEM_PRIVATE_KEY> <LOCAL_SIGN_FILE> <LOCAL_EXTRACT_CERT> <KERNEL_MODULES_DIR>
+$0 -l <LINUX_KERNEL_VERSION> -c <PEM_CERT> -p <PEM_PRIVATE_KEY> -s <LOCAL_SIGN_FILE> -e <LOCAL_EXTRACT_CERT> -k <KERNEL_MODULES_DIR>
 Sign kernel modules in <KERNEL_MODULES_DIR> using private & public keys.
 
 Parameters description:
@@ -21,16 +21,20 @@ Runs examples:
 EOF
 }
 
-if [ "$1" = "-h" -o "$1" = "--help" ]; then 
-    usage
-fi
-
-LINUX_KERNEL_VERSION="$1"
-PEM_CERT="$2"
-PEM_PRIVATE_KEY="$3"
-KERNEL_MODULES_DIR="$4"
-LOCAL_SIGN_FILE="$5"
-LOCAL_EXTRACT_CERT="$6"
+while getopts 'l:c:p:k:s:e:hv' flag; do
+  case "${flag}" in
+    l) LINUX_KERNEL_VERSION="${OPTARG}" ;;
+    c) PEM_CERT="${OPTARG}" ;;
+    p) PEM_PRIVATE_KEY="${OPTARG}" ;;
+    k) KERNEL_MODULES_DIR="${OPTARG}" ;;
+    s) LOCAL_SIGN_FILE="${OPTARG}" ;;
+    e) LOCAL_EXTRACT_CERT="${OPTARG}" ;;
+    v) VERBOSE='true' ;;
+    h) print_usage
+       exit 1 ;;
+  esac
+done
+if [ $OPTIND -eq 1 ]; then echo "no options were pass"; print_usage; exit 1 ;fi
 
 if [ -z ${LINUX_KERNEL_VERSION} ]; then
     echo "ERROR: LINUX_KERNEL_VERSION arg1 is empty"

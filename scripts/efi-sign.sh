@@ -8,25 +8,28 @@ set -e
 # - grub
 # - vmlinuz
 #
-usage() {
+print_usage() {
     cat <<EOF
 
 $0: Usage
-$0 <PRIVATE_KEY_PEM> <CERT_PEM> <EFI_FILE> <EFI_FILE_SIGNED>
+$0 -p <PRIVATE_KEY_PEM> -c <CERT_PEM> -e <EFI_FILE> -s <EFI_FILE_SIGNED>
 Usage example: efi-sign.sh priv-key.pem pub-key.pem shimx64.efi shimx64-signed.efi
 
 EOF
 }
 
-if [ "$1" = "-h" -o "$1" = "--help" ]; then 
-    usage
-fi
-
-PRIVATE_KEY_PEM="$1"
-CERT_PEM="$2"
-EFI_FILE="$3"
-EFI_FILE_SIGNED="$4"
-
+while getopts 'p:c:e:s:hv' flag; do
+  case "${flag}" in
+    p) PRIVATE_KEY_PEM="${OPTARG}" ;;
+    c) CERT_PEM="${OPTARG}" ;;
+    e) EFI_FILE="${OPTARG}" ;;
+    s) EFI_FILE_SIGNED="${OPTARG}" ;;
+    v) VERBOSE='true' ;;
+    h) print_usage
+       exit 1 ;;
+  esac
+done
+if [ $OPTIND -eq 1 ]; then echo "no options were pass"; print_usage; exit 1 ;fi
 
 [ -f "$PRIVATE_KEY_PEM" ] || {
     echo "Error: PRIVATE_KEY_PEM file does not exist: $PRIVATE_KEY_PEM"

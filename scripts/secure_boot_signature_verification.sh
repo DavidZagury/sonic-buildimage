@@ -8,7 +8,7 @@ KERNEL_MODULES_DIR=''
 CERT_PEM=''
 VERBOSE='false'
 
-usage() {
+print_usage() {
     cat <<EOF
 
 $0: Usage
