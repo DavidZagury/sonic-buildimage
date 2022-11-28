@@ -656,11 +656,11 @@ if [[ $SECURE_UPGRADE_MODE == 'dev' || $SECURE_UPGRADE_MODE == "prod" && $SONIC_
             exit 1
         fi
 
-        sudo bash scripts/signing_secure_boot_dev.sh $CONFIGURED_ARCH \
-                                                     $FILESYSTEM_ROOT \
-                                                     $LINUX_KERNEL_VERSION \
-                                                     $SECURE_UPGRADE_DEV_SIGNING_CERT \
-                                                     $SECURE_UPGRADE_DEV_SIGNING_KEY
+        sudo bash scripts/signing_secure_boot_dev.sh -a $CONFIGURED_ARCH \
+                                                     -r $FILESYSTEM_ROOT \
+                                                     -l $LINUX_KERNEL_VERSION \
+                                                     -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                     -p $SECURE_UPGRADE_DEV_SIGNING_KEY
     elif [[ $SECURE_UPGRADE_MODE == "prod" ]]; then
         #  Here Vendor signing should be implemented
         OUTPUT_SEC_BOOT_DIR=$FILESYSTEM_ROOT/boot
