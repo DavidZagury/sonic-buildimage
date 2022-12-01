@@ -33,25 +33,25 @@ if [ $OPTIND -eq 1 ]; then echo "no options were pass"; print_usage; exit 1 ;fi
 
 [ -f "$PRIVATE_KEY_PEM" ] || {
     echo "Error: PRIVATE_KEY_PEM file does not exist: $PRIVATE_KEY_PEM"
-    usage
+    print_usage
     exit 1
 }
 
 [ -f "$CERT_PEM" ] || {
     echo "Error: CERT_PEM file does not exist: $CERT_PEM"
-    usage
+    print_usage
     exit 1
 }
 
 [ -f "$EFI_FILE" ] || {
     echo "Error: File for signing does not exist: $EFI_FILE"
-    usage
+    print_usage
     exit 1
 }
 
 if [ -z ${EFI_FILE_SIGNED} ]; then
     echo "ERROR: no arg named <EFI_FILE_SIGNED> supplied"
-    usage
+    print_usage
     exit 1
 fi
 
