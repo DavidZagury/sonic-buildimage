@@ -8,7 +8,7 @@ print_usage() {
     cat <<EOF
 
 $0: Usage
-$0 -a <CONFIGURED_ARCH> -r <FS_ROOT> -l <LINUX_KERNEL_VERSION> -c <PEM_CERT> -p <PEM_PRIV_KEY>
+$0 -r <FS_ROOT> -l <LINUX_KERNEL_VERSION> -c <PEM_CERT> -p <PEM_PRIV_KEY>
 
 EOF
 }
@@ -67,61 +67,34 @@ if [ ! -f "${PEM_PRIV_KEY}" ]; then
     exit 1
 fi
 
-ARCH=''
-if [[ $CONFIGURED_ARCH == amd64 ]]; then
-ARCH=x86_64
-EFI_ARCH=x64
-fi
-
 # efi-sign.sh is used to sign: shim, mmx, grub, and kernel (vmlinuz)
 EFI_SIGNING=scripts/efi-sign.sh
 
-######################
-## shim & mmx signing
-######################
+# ######################################
+# Signing EFI files: mm, shim, grub
+# #####################################
+efi_file_list=$(sudo find ${KERNEL_MODULES_DIR} -name "*.efi")
 
-# shim dirs
-SHIM_DIR_SRC=$FS_ROOT/usr/lib/shim
-MMX_EFI_SRC=$SHIM_DIR_SRC/mm${EFI_ARCH}.efi
-SHIMX_EFI_SRC=$SHIM_DIR_SRC/shim${EFI_ARCH}.efi
+for efi in $efi_file_list
+do
+    # grep filename from full path
+    efi_filename=$(echo $efi | grep -o '[^/]*$')
+    
+    if echo $efi_filename | grep -e "shim" -e "grub" -e "mm"; then
+    
+        clean_file ${efi}-signed
 
-# clean old files
-clean_file ${SHIMX_EFI_SRC}-signed
-clean_file ${MMX_EFI_SRC}-signed
-clean_file $FS_ROOT/boot/shim${EFI_ARCH}.efi
-clean_file $FS_ROOT/boot/mm${EFI_ARCH}.efi
+        echo "signing efi file - full path: ${efi} filename: ${efi_filename}"
+        echo "sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${efi} -s ${efi}-signed"
+        sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${efi} -s ${efi}-signed
 
-echo "signing shim${EFI_ARCH}.efi & mm${EFI_ARCH}.efi from location: ${SHIM_DIR_SRC} .."
-sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${SHIMX_EFI_SRC} -s ${SHIMX_EFI_SRC}-signed
-sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${MMX_EFI_SRC} -s ${MMX_EFI_SRC}-signed
+        # cp shim & mmx signed files to boot directory in the fs.
+        sudo cp ${efi}-signed $FS_ROOT/boot/${efi_filename}
 
-# cp shim & mmx signed files to boot directory in the fs.
-sudo cp ${SHIMX_EFI_SRC}-signed $FS_ROOT/boot/shim${EFI_ARCH}.efi
-sudo cp ${MMX_EFI_SRC}-signed $FS_ROOT/boot/mm${EFI_ARCH}.efi
-
-# verifying signature of mm & shim efi files.
-sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/shim${EFI_ARCH}.efi  
-sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/mm${EFI_ARCH}.efi
-
-######################
-## grub signing
-######################
-
-GRUB_DIR_SRC=$FS_ROOT/usr/lib/grub/x86_64-efi/monolithic/
-GRUB_EFI_SRC=$GRUB_DIR_SRC/grub${EFI_ARCH}.efi
-
-# clean old files
-clean_file ${GRUB_EFI_SRC}-signed
-clean_file $FS_ROOT/boot/grub${EFI_ARCH}.efi
-
-echo "signing grub${EFI_ARCH}.efi from location: ${GRUB_EFI_SRC} .."
-sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${GRUB_EFI_SRC} -s ${GRUB_EFI_SRC}-signed
-
-# cp signed grub to fs boot dir.
-sudo cp ${GRUB_EFI_SRC}-signed $FS_ROOT/boot/grub${EFI_ARCH}.efi
-
-# verifying signature of grub efi file.
-sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/grub${EFI_ARCH}.efi
+        # verifying signature of mm & shim efi files.
+        sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/${efi_filename} 
+    fi
+done
 
 ######################
 ## vmlinuz signing
