@@ -16,8 +16,8 @@ LOCAL_EXTRACT_CERT                   path of the extract-cert tool for Extract X
 KERNEL_MODULES_DIR                   root directory of all the kernel modules to be sign by the script, if the value empty it will use the call script location as root.
 
 Runs examples:
-1. sudo bash scripts/signing_kernel_modules.sh 5.10.0-8-2 cert.pem priv-key.pem
-2. sudo bash scripts/signing_kernel_modules.sh 5.10.0-8-2 cert.pem priv-key.pem fsroot-mellanox /usr/lib/linux-kbuild-5.10/scripts/extract-cert /usr/lib/linux-kbuild-5.10/scripts/sign-file
+1. sudo bash scripts/signing_kernel_modules.sh -l 5.10.0-8-2 -c cert.pem -p priv-key.pem
+2. sudo bash scripts/signing_kernel_modules.sh -l 5.10.0-8-2 -c cert.pem priv-key.pem -k fsroot-mellanox -e /usr/lib/linux-kbuild-5.10/scripts/extract-cert -s /usr/lib/linux-kbuild-5.10/scripts/sign-file
 EOF
 }
 
