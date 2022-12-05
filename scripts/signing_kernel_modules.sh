@@ -16,8 +16,8 @@ LOCAL_EXTRACT_CERT                   path of the extract-cert tool for Extract X
 KERNEL_MODULES_DIR                   root directory of all the kernel modules to be sign by the script, if the value empty it will use the call script location as root.
 
 Runs examples:
-1. sudo bash scripts/signing_kernel_modules.sh 5.10.0-8-2 cert.pem priv-key.pem
-2. sudo bash scripts/signing_kernel_modules.sh 5.10.0-8-2 cert.pem priv-key.pem fsroot-mellanox /usr/lib/linux-kbuild-5.10/scripts/extract-cert /usr/lib/linux-kbuild-5.10/scripts/sign-file
+1. ./scripts/signing_kernel_modules.sh -l 5.10.0-8-2 -c cert.pem -p priv-key.pem
+2. ./scripts/signing_kernel_modules.sh -l 5.10.0-8-2 -c cert.pem -p priv-key.pem -k fsroot-mellanox -e /usr/lib/linux-kbuild-5.10/scripts/extract-cert -s /usr/lib/linux-kbuild-5.10/scripts/sign-file
 EOF
 }
 
@@ -83,7 +83,7 @@ if [ ! -d "$KERNEL_MODULES_DIR" ]; then
 fi
 
 # find all the kernel modules.
-modules_list=$(sudo find ${KERNEL_MODULES_DIR} -name "*.ko")
+modules_list=$(find ${KERNEL_MODULES_DIR} -name "*.ko")
 
 dev_certs_tmp_folder="/tmp/dev_kmod_sign"
 
@@ -111,7 +111,7 @@ do
     echo "signing module named: ${mod} .."
     echo "${LOCAL_SIGN_FILE} sha512 ${local_sign_key} ${local_sign_cert} ${mod}"
     kernel_modules_cnt=$((kernel_modules_cnt+1))
-    sudo ${LOCAL_SIGN_FILE} sha512 ${local_sign_key} ${local_sign_cert} ${mod}
+    ${LOCAL_SIGN_FILE} sha512 ${local_sign_key} ${local_sign_cert} ${mod}
 
     # check Kernel module is signed.
     if ! grep -q "~Module signature appended~" "${mod}"; then

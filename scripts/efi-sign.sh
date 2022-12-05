@@ -13,7 +13,7 @@ print_usage() {
 
 $0: Usage
 $0 -p <PRIVATE_KEY_PEM> -c <CERT_PEM> -e <EFI_FILE> -s <EFI_FILE_SIGNED>
-Usage example: efi-sign.sh priv-key.pem pub-key.pem shimx64.efi shimx64-signed.efi
+Usage example: efi-sign.sh -p priv-key.pem -c pub-key.pem -e shimx64.efi -s shimx64-signed.efi
 
 EOF
 }
