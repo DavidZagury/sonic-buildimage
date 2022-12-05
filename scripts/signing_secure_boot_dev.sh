@@ -16,8 +16,8 @@ EOF
 clean_file() {
     if [ -f $1 ]; then
         echo "clean old file named: $1"
-        echo "sudo rm -f $1"
-        sudo sudo rm -f $1
+        echo "rm -f $1"
+        rm -f $1
     fi
 }
 
@@ -39,31 +39,31 @@ echo "$0 signing & verifying EFI files and Kernel Modules start ..."
 
 if [ -z ${CONFIGURED_ARCH} ]; then
     echo "ERROR: CONFIGURED_ARCH=${CONFIGURED_ARCH} is empty"
-    usage
+    print_usage
     exit 1
 fi
 
 if [ -z ${FS_ROOT} ]; then
     echo "ERROR: FS_ROOT=${FS_ROOT} is empty"
-    usage
+    print_usage
     exit 1
 fi
 
 if [ -z ${LINUX_KERNEL_VERSION} ]; then
     echo "ERROR: LINUX_KERNEL_VERSION=${LINUX_KERNEL_VERSION} is empty"
-    usage
+    print_usage
     exit 1
 fi
 
 if [ ! -f "${PEM_CERT}" ]; then
     echo "ERROR: PEM_CERT=${PEM_CERT} file does not exist"
-    usage
+    print_usage
     exit 1
 fi
 
 if [ ! -f "${PEM_PRIV_KEY}" ]; then
     echo "ERROR: PEM_PRIV_KEY=${PEM_PRIV_KEY} file does not exist"
-    usage
+    print_usage
     exit 1
 fi
 
@@ -86,13 +86,13 @@ do
 
         echo "signing efi file - full path: ${efi} filename: ${efi_filename}"
         echo "sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${efi} -s ${efi}-signed"
-        sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${efi} -s ${efi}-signed
+        ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${efi} -s ${efi}-signed
 
         # cp shim & mmx signed files to boot directory in the fs.
-        sudo cp ${efi}-signed $FS_ROOT/boot/${efi_filename}
+        cp ${efi}-signed $FS_ROOT/boot/${efi_filename}
 
         # verifying signature of mm & shim efi files.
-        sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/${efi_filename} 
+        ./scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e $FS_ROOT/boot/${efi_filename} 
     fi
 done
 
@@ -106,16 +106,16 @@ CURR_VMLINUZ=$FS_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH}
 clean_file ${CURR_VMLINUZ}-signed
 
 echo "signing ${CURR_VMLINUZ} .."
-sudo ${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${CURR_VMLINUZ} -s ${CURR_VMLINUZ}-signed
+${EFI_SIGNING} -p $PEM_PRIV_KEY -c $PEM_CERT -e ${CURR_VMLINUZ} -s ${CURR_VMLINUZ}-signed
 
 # rename signed vmlinuz with the name vmlinuz without signed suffix
-sudo mv ${CURR_VMLINUZ}-signed ${CURR_VMLINUZ}
+mv ${CURR_VMLINUZ}-signed ${CURR_VMLINUZ}
 
-sudo bash scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e ${CURR_VMLINUZ}
+./scripts/secure_boot_signature_verification.sh -c $PEM_CERT -e ${CURR_VMLINUZ}
 
 #########################
 # Kernel Modules signing
 #########################
-sudo bash scripts/signing_kernel_modules.sh -l $LINUX_KERNEL_VERSION -c ${PEM_CERT} -p ${PEM_PRIV_KEY} -k ${FS_ROOT}
+./scripts/signing_kernel_modules.sh -l $LINUX_KERNEL_VERSION -c ${PEM_CERT} -p ${PEM_PRIV_KEY} -k ${FS_ROOT}
 
 echo "$0 signing & verifying EFI files and Kernel Modules DONE"

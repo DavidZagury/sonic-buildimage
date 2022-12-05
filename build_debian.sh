@@ -649,25 +649,25 @@ if [[ $SECURE_UPGRADE_MODE == 'dev' || $SECURE_UPGRADE_MODE == "prod" && $SONIC_
             exit 1
         fi
 
-        sudo bash scripts/signing_secure_boot_dev.sh -a $CONFIGURED_ARCH \
-                                                     -r $FILESYSTEM_ROOT \
-                                                     -l $LINUX_KERNEL_VERSION \
-                                                     -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
-                                                     -p $SECURE_UPGRADE_DEV_SIGNING_KEY
+        sudo ./scripts/signing_secure_boot_dev.sh -a $CONFIGURED_ARCH \
+                                                  -r $FILESYSTEM_ROOT \
+                                                  -l $LINUX_KERNEL_VERSION \
+                                                  -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                  -p $SECURE_UPGRADE_DEV_SIGNING_KEY
     elif [[ $SECURE_UPGRADE_MODE == "prod" ]]; then
         #  Here Vendor signing should be implemented
         OUTPUT_SEC_BOOT_DIR=$FILESYSTEM_ROOT/boot
-        sudo bash scripts/signing_secure_boot_prod.sh $CONFIGURED_ARCH $FILESYSTEM_ROOT $LINUX_KERNEL_VERSION $OUTPUT_SEC_BOOT_DIR
+        sudo ./scripts/signing_secure_boot_prod.sh $CONFIGURED_ARCH $FILESYSTEM_ROOT $LINUX_KERNEL_VERSION $OUTPUT_SEC_BOOT_DIR
         
         # verifying all EFI files and kernel modules in $OUTPUT_SEC_BOOT_DIR
-        bash scripts/secure_boot_signature_verification.sh -e $OUTPUT_SEC_BOOT_DIR \
-                                                        -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
-                                                        -k $FILESYSTEM_ROOT
+        sudo ./scripts/secure_boot_signature_verification.sh -e $OUTPUT_SEC_BOOT_DIR \
+                                                             -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                             -k $FILESYSTEM_ROOT
 
         # verifying vmlinuz file.
-        bash scripts/secure_boot_signature_verification.sh -e $FILESYSTEM_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH} \
-                                                        -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
-                                                        -k $FILESYSTEM_ROOT
+        sudo ./scripts/secure_boot_signature_verification.sh -e $FILESYSTEM_ROOT/boot/vmlinuz-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH} \
+                                                             -c $SECURE_UPGRADE_DEV_SIGNING_CERT \
+                                                             -k $FILESYSTEM_ROOT
     fi
     echo "Secure Boot support build stage: END."
 fi
