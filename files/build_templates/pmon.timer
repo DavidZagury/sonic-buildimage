@@ -5,7 +5,7 @@ PartOf=pmon.service
 
 [Timer]
 OnUnitActiveSec=0 sec
-OnBootSec=1min 30 sec
+OnBootSec=0 sec
 Unit=pmon.service
 
 [Install]
