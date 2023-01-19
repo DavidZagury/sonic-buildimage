@@ -1,6 +1,7 @@
 #include <thread>
 #include "eventd.h"
 #include "dbconnector.h"
+#include "json.hpp"
 
 /*
  * There are 5 threads, including the main

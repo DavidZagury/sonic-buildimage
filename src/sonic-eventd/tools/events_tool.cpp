@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "events.h"
 #include "events_common.h"
+#include "json.hpp"
 
 /*
  * Sample i/p file contents for send

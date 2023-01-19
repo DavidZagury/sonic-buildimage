@@ -56,7 +56,7 @@ bool RsyslogPlugin::createRegexList() {
     }
     try {
         regexFile >> jsonList;
-    } catch (invalid_argument& iaException) {
+    } catch (json::exception& iaException) {
         SWSS_LOG_ERROR("Invalid JSON file: %s, throws exception: %s\n", m_regexPath.c_str(), iaException.what());
         return false;
     }
@@ -83,7 +83,7 @@ bool RsyslogPlugin::createRegexList() {
             rs.tag = tag;
             rs.regexExpression = expression;
             regexList.push_back(rs);
-	} catch (domain_error& deException) {
+	} catch (json::exception& deException) {
             SWSS_LOG_ERROR("Missing required key, throws exception: %s\n", deException.what());
             return false;
         } catch (regex_error& reException) {
