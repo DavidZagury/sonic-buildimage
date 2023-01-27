@@ -18,7 +18,8 @@ $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 		./autogen.sh
 	fi
 
-	debuild -e PYTHON_INTERPRETERS="\"python2 python3\"" -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
+	DEB_CFLAGS_SET="-DPD_BU -DSPECTRUM4_BU" debuild -e "KCFLAGS=-DPD_BU -DSPECTRUM4_BU" -e PYTHON_INTERPRETERS="\"python2 python3\"" -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
+	#debuild -e PYTHON_INTERPRETERS="\"python2 python3\"" -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
 
 	popd
 

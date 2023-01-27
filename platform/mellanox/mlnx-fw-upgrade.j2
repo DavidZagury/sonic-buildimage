@@ -268,10 +268,4 @@ ExitIfQEMU
 
 WaitForDevice
 
-if [ "${IMAGE_UPGRADE}" != "${YES_PARAM}" ]; then
-    UpgradeFW
-else
-    UpgradeFWFromImage
-fi
-
-ExitSuccess "firmware upgrade is completed"
+ExitSuccess "firmware upgrade is disabled"

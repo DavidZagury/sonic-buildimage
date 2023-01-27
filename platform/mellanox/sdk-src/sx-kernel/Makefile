@@ -20,7 +20,8 @@ $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 
 	# build
 
-	debuild -e KVERSION=$(KVERSION) -e KSRC_EXT=/lib/modules/$(KVERSION)/source/ -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
+	#debuild -e KVERSION=$(KVERSION) -e KSRC_EXT=/lib/modules/$(KVERSION)/source/ -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
+	DEB_CFLAGS_SET="-DPD_BU -DSPECTRUM4_BU" debuild -e KVERSION=$(KVERSION) -e "KCFLAGS=-DPD_BU -DSPECTRUM4_BU" -e KSRC_EXT=/lib/modules/$(KVERSION)/source/ -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
 
 	popd
 

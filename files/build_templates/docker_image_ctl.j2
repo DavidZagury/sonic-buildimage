@@ -297,6 +297,9 @@ function postStartAction()
 }
 
 start() {
+{%- if docker_container_name == "pmon" %}
+    echo "PMON is disabled from starting"
+{%- else %}
     # Obtain boot type from kernel arguments
     BOOT_TYPE=`getBootType`
 
@@ -578,6 +581,8 @@ start() {
     /usr/local/bin/container start ${DOCKERNAME}
     {%- endif %}
     postStartAction
+{%- endif %}
+
 }
 
 wait() {

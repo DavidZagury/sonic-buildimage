@@ -47,7 +47,7 @@ index 1ee05b5..50d922b 100755
  
 +check_simx()
 +{
-+	if [ -n "$(lspci -vvv | grep SimX)" ]; then
++	if true; then
 +		exit 0
 +	fi
 +}
