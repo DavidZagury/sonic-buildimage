@@ -3,7 +3,6 @@ FROM docker-config-engine-bullseye-{{DOCKER_USERNAME}}:{{DOCKER_USERTAG}}
 
 ARG docker_container_name
 ARG image_version
-RUN [ -f /etc/rsyslog.conf ] && sed -ri "s/%syslogtag%/$docker_container_name#%syslogtag%/;" /etc/rsyslog.conf
 
 # Make apt-get non-interactive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -39,8 +38,11 @@ RUN apt-get update &&   \
 RUN pip3 install grpcio==1.39.0 \
         grpcio-tools==1.39.0
 
-# Barefoot platform vendors' sonic_platform packages import the Python 'thrift' library
-RUN pip3 install thrift==0.13.0
+# Barefoot platform vendors' sonic_platform packages import these Python libraries
+RUN pip3 install thrift==0.13.0 netifaces
+
+# Ragile platform vendors' sonic_platform packages import these Python libraries
+RUN pip3 install requests
 
 # We install the libpci module in order to be able to do PCI transactions
 RUN pip3 install libpci

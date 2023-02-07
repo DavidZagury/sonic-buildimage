@@ -54,6 +54,7 @@ Table of Contents
          * [TC to Priority group map](#tc-to-priority-group-map)  
          * [TC to Queue map](#tc-to-queue-map)    
          * [Telemetry](#telemetry)  
+         * [Tunnel](#tunnel)
          * [Versions](#versions)  
          * [VLAN](#vlan)   
          * [VLAN_MEMBER](#vlan_member)  
@@ -64,6 +65,7 @@ Table of Contents
          * [WRED_PROFILE](#wred_profile)  
          * [PASSWORD_HARDENING](#password_hardening)  
          * [SYSTEM_DEFAULTS table](#systemdefaults-table)
+         * [RADIUS](#radius)
    * [For Developers](#for-developers)  
       * [Generating Application Config by Jinja2 Template](#generating-application-config-by-jinja2-template)
       * [Incremental Configuration by Subscribing to ConfigDB](#incremental-configuration-by-subscribing-to-configdb)
@@ -1601,6 +1603,61 @@ Container side configuration:
 }
 ```
 
+### Tunnel
+
+This table configures the MUX tunnel for Dual-ToR setup
+```
+{
+    "TUNNEL": {
+        "MuxTunnel0": {
+            "dscp_mode": "uniform",
+            "dst_ip": "10.1.0.32",
+            "ecn_mode": "copy_from_outer",
+            "encap_ecn_mode": "standard",
+            "ttl_mode": "pipe",
+            "tunnel_type": "IPINIP"
+        }
+    }
+}
+```
+
+different example for configuring MUX tunnel
+```
+{
+    "TUNNEL": {
+        "MuxTunnel0": {
+            "dscp_mode": "pipe",
+            "dst_ip": "10.1.0.32",
+            "ecn_mode": "standard",
+            "encap_ecn_mode": "standard",
+            "ttl_mode": "uniform",
+            "tunnel_type": "IPINIP"
+        }
+    }
+}
+```
+
+example mux tunnel configuration for when tunnel_qos_remap is enabled
+```
+{
+    "TUNNEL": {
+        "MuxTunnel0": {
+            "tunnel_type": "IPINIP",
+            "src_ip": "10.1.0.33",
+            "dst_ip": "10.1.0.32",
+            "dscp_mode": "pipe",
+            "encap_ecn_mode": "standard",
+            "ecn_mode": "copy_from_outer",
+            "ttl_mode": "uniform",
+            "decap_dscp_to_tc_map": "DecapDscpToTcMap",
+            "decap_tc_to_pg_map": "DecapTcToPgMap",
+            "encap_tc_to_dscp_map": "EncapTcToQueueMap",
+            "encap_tc_to_queue_map": "EncapTcToDscpMap"
+        }
+    }
+}
+```
+
 ### Versions
 
 This table is where the curret version of the software is recorded.
@@ -1920,6 +1977,28 @@ The default value of flags in `SYSTEM_DEFAULTS` table can be set in `init_cfg.js
 If the values in `config_db.json` is changed by user, it will not be rewritten back by `init_cfg.json` as `config_db.json` is loaded after `init_cfg.json` in [docker_image_ctl.j2](https://github.com/Azure/sonic-buildimage/blob/master/files/build_templates/docker_image_ctl.j2)
 
 For the flags that can be changed by reconfiguration, we can update entries in `minigraph.xml`, and parse the new values in to config_db with minigraph parser at reloading minigraph. If there are duplicated entries in `init_cfg.json` and `minigraph.xml`, the values in `minigraph.xml` will overwritten the values defined in `init_cfg.json`.
+
+### RADIUS
+
+The RADIUS and RADIUS_SERVER tables define RADIUS configuration parameters. RADIUS table carries global configuration while RADIUS_SERVER table carries per server configuration.
+
+```
+   "RADIUS": {
+       "global": {
+              "auth_type": "pap",
+              "timeout": "5"
+        }
+    }
+    
+    "RADIUS_SERVER": {
+        "192.168.1.2": {
+               "priority": "4",
+               "retransmit": "2",
+               "timeout": "5"
+        }
+    }
+```
+
 #### 5.2.3 Update value directly in db memory
 
 For Developers

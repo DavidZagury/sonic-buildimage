@@ -1,4 +1,5 @@
 soc_family=BCM8885X
+system_ref_core_clock_khz=1600000
 
 dpp_db_path=/usr/share/bcm/db
 
@@ -633,7 +634,7 @@ tslam_timeout_usec=1000000
 
 ### Interrupts
 appl_enable_intr_init=1
-polled_irq_mode=1
+polled_irq_mode=0
 # reduce CPU load, configure delay 100ms
 polled_irq_delay=1000
 

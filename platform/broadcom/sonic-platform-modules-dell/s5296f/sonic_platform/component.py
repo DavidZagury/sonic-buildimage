@@ -14,6 +14,7 @@ try:
     import subprocess
     from sonic_platform_base.component_base import ComponentBase
     import sonic_platform.hwaccess as hwaccess
+    from sonic_py_common.general import check_output_pipe
 
 except ImportError as e:
     raise ImportError(str(e) + "- required module not found")
@@ -31,9 +32,7 @@ def get_bmc_version():
     """ Returns BMC Version """
     bmc_ver = ''
     try:
-        bmc_ver = subprocess.check_output(
-            "ipmitool mc info | awk '/Firmware Revision/ { print $NF }'",
-            shell=True, text=True).strip()
+        bmc_ver = check_output_pipe(["ipmitool", "mc", "info"], ["awk", "/Firmware Revision/ { print $NF }"])
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
     return bmc_ver
@@ -111,7 +110,7 @@ class Component(ComponentBase):
         self.index = component_index
         self.name = self.CHASSIS_COMPONENTS[self.index][0]
         self.description = self.CHASSIS_COMPONENTS[self.index][1]
-        self.version = self.CHASSIS_COMPONENTS[self.index][2]()
+        self.version = None
 
     def get_name(self):
         """
@@ -135,6 +134,8 @@ class Component(ComponentBase):
         Returns:
             A string containing the firmware version of the component
         """
+        if self.version == None:
+            self.version = self.CHASSIS_COMPONENTS[self.index][2]()
         return self.version
 
     def get_presence(self):
