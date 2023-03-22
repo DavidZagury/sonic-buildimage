@@ -107,11 +107,11 @@ class TestFan:
         fan.set_speed(60)
         mock_write_file.assert_called_with(fan.fan_speed_set_path, 153, raise_exception=True)
 
-    @patch('sonic_platform.thermal.Thermal.get_cooling_level')
+    @patch('sonic_platform.utils.read_int_from_file')
     @patch('sonic_platform.psu.Psu.get_presence')
     @patch('sonic_platform.psu.Psu.get_powergood_status')
     @patch('os.path.exists')
-    def test_psu_fan_basic(self, mock_path_exists, mock_powergood, mock_presence, mock_cooling_level):
+    def test_psu_fan_basic(self, mock_path_exists, mock_powergood, mock_presence, mock_read):
         mock_path_exists.return_value = False
         psu = Psu(0)
         fan = PsuFan(0, 1, psu)
@@ -124,7 +124,7 @@ class TestFan:
         assert fan.get_presence() is False
         mock_path_exists.return_value = True
         assert fan.get_presence() is True
-        mock_cooling_level.return_value = 7
+        mock_read.return_value = 7
         assert fan.get_target_speed() == 70
 
     def test_psu_fan_set_speed(self):
