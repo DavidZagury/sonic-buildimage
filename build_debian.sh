@@ -658,8 +658,8 @@ if [[ $SECURE_UPGRADE_MODE == 'dev' || $SECURE_UPGRADE_MODE == "prod" && $SONIC_
         #  Here Vendor signing should be implemented
         OUTPUT_SEC_BOOT_DIR=$FILESYSTEM_ROOT/boot
 
-        if [ ! -f $SECURE_UPGRADE_PROD_SIGNING_TOOL ]; then
-            echo "Error: SONiC SECURE_UPGRADE_PROD_SIGNING_TOOL=$SECURE_UPGRADE_PROD_SIGNING_TOOL script missing"
+        if [ ! -f $sonic_su_prod_signing_tool ]; then
+            echo "Error: SONiC sonic_su_prod_signing_tool=$sonic_su_prod_signing_tool script missing"
             exit 1
         fi
 
