@@ -1,0 +1,25 @@
+From 9e2b126091a82f07a342f21576b60f59b6707f22 Mon Sep 17 00:00:00 2001
+From: Oleksandr Shamray <oleksandrs@nvidia.com>
+Date: Thu, 23 Mar 2023 11:45:28 +0200
+Subject: [PATCH] hw-mgmt: thermal: Add TC service start by default
+
+Signed-off-by: Oleksandr Shamray <oleksandrs@nvidia.com>
+---
+ debian/rules | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/debian/rules b/debian/rules
+index fd80dce..1abc77c 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -34,6 +34,7 @@ override_dh_installinit:
+ 
+ override_dh_systemd_enable:
+ 	dh_systemd_enable --name=hw-management
++	dh_systemd_enable --name=hw-management-tc
+ 
+ override_dh_systemd_start:
+ 	dh_systemd_start --name=hw-management
+-- 
+1.9.1
+
