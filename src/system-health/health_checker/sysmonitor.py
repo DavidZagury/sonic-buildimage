@@ -405,7 +405,13 @@ class Sysmonitor(ProcessTaskBase):
             #then it should be removed from STATE_DB & set
             if event in self.dnsrvs_name:
                 self.dnsrvs_name.remove(event)
-            
+
+            if len(self.dnsrvs_name) == 0:
+                astate = "UP"
+            else:
+                astate = "DOWN"
+            self.publish_system_status(astate)
+
             srv_name,last = event.split('.')
             key = 'ALL_SERVICE_STATUS|{}'.format(srv_name)
             key_exists = self.state_db.exists(self.state_db.STATE_DB, key)
