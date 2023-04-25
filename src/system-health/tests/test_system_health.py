@@ -661,20 +661,19 @@ def test_check_unit_status():
 @patch('health_checker.sysmonitor.Sysmonitor.run_systemctl_show', MagicMock(return_value=mock_srv_props['mock_bgp.service']))
 @patch('health_checker.sysmonitor.Sysmonitor.get_app_ready_status', MagicMock(return_value=('Down','-','-')))
 @patch('health_checker.sysmonitor.Sysmonitor.post_unit_status', MagicMock())
-def test_check_unit_status2():
+@patch('health_checker.sysmonitor.Sysmonitor.print_console_message', MagicMock())
+def test_system_status_up_after_service_removed():
     sysmon = Sysmonitor()
     sysmon.publish_system_status('UP')
 
     sysmon.check_unit_status('mock_bgp.service')
     assert 'mock_bgp.service' in sysmon.dnsrvs_name
-    print(sysmon.dnsrvs_name)
     result = swsscommon.SonicV2Connector.get(MockConnector, 0, "SYSTEM_READY|SYSTEM_STATE", 'Status')
     print("system status result before service was removed from system: {}".format(result))
     assert result == "DOWN"
 
     sysmon.check_unit_status('mock_bgp.service')
     assert 'mock_bgp.service' not in sysmon.dnsrvs_name
-    print(sysmon.dnsrvs_name)
     result = swsscommon.SonicV2Connector.get(MockConnector, 0, "SYSTEM_READY|SYSTEM_STATE", 'Status')
     print("system status result after service was removed from system: {}".format(result))
     assert result == "UP"
