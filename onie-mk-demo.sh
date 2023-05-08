@@ -141,10 +141,10 @@ cp $installer_dir/sharch_body.sh $output_file || {
 sed -i -e "s/%%IMAGE_SHA1%%/$sha1/" $output_file
 echo -n "."
 tar_size="$(wc -c < "${sharch}")"
-cat $sharch >> $output_file
 sed -i -e "s|%%PAYLOAD_IMAGE_SIZE%%|${tar_size}|" ${output_file}
+cat $sharch >> $output_file
 echo "secure upgrade flags: SECURE_UPGRADE_MODE = $SECURE_UPGRADE_MODE, \
-SECURE_UPGRADE_DEV_SIGNING_KEY = $SECURE_UPGRADE_DEV_SIGNING_KEY, SECURE_UPGRADE_DEV_SIGNING_CERT = $SECURE_UPGRADE_DEV_SIGNING_CERT"
+SECURE_UPGRADE_DEV_SIGNING_KEY = $SECURE_UPGRADE_DEV_SIGNING_KEY, SECURE_UPGRADE_SIGNING_CERT = $SECURE_UPGRADE_SIGNING_CERT"
 
 if [ "$SECURE_UPGRADE_MODE" = "dev" -o "$SECURE_UPGRADE_MODE" = "prod" ]; then
     CMS_SIG="${tmp_dir}/signature.sig"
