@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2022 NVIDIA CORPORATION & AFFILIATES.
+# Copyright (c) 2019-2023 NVIDIA CORPORATION & AFFILIATES.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +130,7 @@ class ONIEUpdater(object):
     ONIE_FW_UPDATE_CMD_INSTALL = ['/usr/bin/mlnx-onie-fw-update.sh', 'update', '--no-reboot']
     ONIE_FW_UPDATE_CMD_SHOW_PENDING = ['/usr/bin/mlnx-onie-fw-update.sh', 'show-pending']
 
-    ONIE_VERSION_PARSE_PATTERN = '([0-9]{4})\.([0-9]{2})-([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)'
+    ONIE_VERSION_PARSE_PATTERN = '([0-9]{4})\.([0-9]{2})-([0-9]+)\.([0-9]+)\.([0-9]+)-?(dev)?-([0-9]+)'
     ONIE_VERSION_BASE_PARSE_PATTERN = '([0-9]+)\.([0-9]+)\.([0-9]+)'
     ONIE_VERSION_REQUIRED = '5.2.0016'
 
@@ -279,7 +279,8 @@ class ONIEUpdater(object):
         onie_major = m.group(3)
         onie_minor = m.group(4)
         onie_release = m.group(5)
-        onie_baudrate = m.group(6)
+        onie_signtype = m.group(6)
+        onie_baudrate = m.group(7)
 
         return onie_year, onie_month, onie_major, onie_minor, onie_release, onie_baudrate
 
@@ -422,7 +423,7 @@ class Component(ComponentBase):
 
         name_list = os.path.splitext(image_path)
         if self.image_ext_name is not None:
-            if name_list[1] != self.image_ext_name:
+            if name_list[1] not in self.image_ext_name:
                 print("ERROR: Extend name of file {} is wrong. Image for {} should have extend name {}".format(image_path, self.name, self.image_ext_name))
                 return False
 
@@ -478,7 +479,7 @@ class ComponentONIE(Component):
 class ComponentSSD(Component):
     COMPONENT_NAME = 'SSD'
     COMPONENT_DESCRIPTION = 'SSD - Solid-State Drive'
-    COMPONENT_FIRMWARE_EXTENSION = '.pkg'
+    COMPONENT_FIRMWARE_EXTENSION = ['.pkg']
 
     FIRMWARE_VERSION_ATTR = 'Firmware Version'
     AVAILABLE_FIRMWARE_VERSION_ATTR = 'Available Firmware Version'
@@ -641,7 +642,7 @@ class ComponentSSD(Component):
 class ComponentBIOS(Component):
     COMPONENT_NAME = 'BIOS'
     COMPONENT_DESCRIPTION = 'BIOS - Basic Input/Output System'
-    COMPONENT_FIRMWARE_EXTENSION = '.rom'
+    COMPONENT_FIRMWARE_EXTENSION = ['.rom', '.cap', '.cab']
 
     BIOS_VERSION_COMMAND = ['dmidecode', '--oem-string', '1']
 
@@ -725,7 +726,7 @@ class ComponentBIOSSN2201(Component):
 class ComponentCPLD(Component):
     COMPONENT_NAME = 'CPLD{}'
     COMPONENT_DESCRIPTION = 'CPLD - Complex Programmable Logic Device'
-    COMPONENT_FIRMWARE_EXTENSION = '.vme'
+    COMPONENT_FIRMWARE_EXTENSION = ['.vme']
 
     MST_DEVICE_PATH = '/dev/mst'
     MST_DEVICE_PATTERN = 'mt[0-9]*_pci_cr0'
