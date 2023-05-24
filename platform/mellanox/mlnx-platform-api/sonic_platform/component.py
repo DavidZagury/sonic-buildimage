@@ -145,14 +145,16 @@ class ONIEUpdater(object):
     # For SN2201, upgrading fireware from ONIE is supported from day one so we do not need to check it.
     PLATFORM_ALWAYS_SUPPORT_UPGRADE = ['x86_64-nvidia_sn2201-r0']
 
-    BIOS_UPDATE_FILE_EXT = '.rom'
-    
+    BIOS_UPDATE_FILE_EXT_ROM = '.rom'
+    BIOS_UPDATE_FILE_EXT_CAB = '.CAB'
 
     def __init__(self):
         self.platform = device_info.get_platform()
 
     def __add_prefix(self, image_path):
-        if self.BIOS_UPDATE_FILE_EXT not in image_path:
+        if image_path.endswith(self.BIOS_UPDATE_FILE_EXT_CAB):
+            return image_path;
+        elif self.BIOS_UPDATE_FILE_EXT not in image_path:
             rename_path = "/tmp/00-{}".format(os.path.basename(image_path))
         else:
             rename_path = "/tmp/99-{}".format(os.path.basename(image_path))
@@ -642,7 +644,7 @@ class ComponentSSD(Component):
 class ComponentBIOS(Component):
     COMPONENT_NAME = 'BIOS'
     COMPONENT_DESCRIPTION = 'BIOS - Basic Input/Output System'
-    COMPONENT_FIRMWARE_EXTENSION = ['.rom', '.cap', '.cab']
+    COMPONENT_FIRMWARE_EXTENSION = ['.rom', '.cab']
 
     BIOS_VERSION_COMMAND = ['dmidecode', '--oem-string', '1']
 
