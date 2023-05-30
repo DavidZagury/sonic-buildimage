@@ -146,7 +146,7 @@ class ONIEUpdater(object):
     PLATFORM_ALWAYS_SUPPORT_UPGRADE = ['x86_64-nvidia_sn2201-r0']
 
     BIOS_UPDATE_FILE_EXT_ROM = '.rom'
-    BIOS_UPDATE_FILE_EXT_CAB = '.CAB'
+    BIOS_UPDATE_FILE_EXT_CAB = '.cab'
 
     def __init__(self):
         self.platform = device_info.get_platform()
@@ -154,7 +154,7 @@ class ONIEUpdater(object):
     def __add_prefix(self, image_path):
         if image_path.endswith(self.BIOS_UPDATE_FILE_EXT_CAB):
             return image_path;
-        elif self.BIOS_UPDATE_FILE_EXT not in image_path:
+        elif self.BIOS_UPDATE_FILE_EXT_ROM not in image_path:
             rename_path = "/tmp/00-{}".format(os.path.basename(image_path))
         else:
             rename_path = "/tmp/99-{}".format(os.path.basename(image_path))
