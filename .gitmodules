@@ -100,7 +100,7 @@
 	url = https://github.com/nokia/sonic-platform.git
 [submodule "src/linkmgrd"]
 	path = src/linkmgrd
-	url = https://github.com/sonic-net/sonic-linkmgrd.git
+	url = https://github.com/keboliu/sonic-linkmgrd.git
 	branch = 202211
 [submodule "src/sonic-p4rt/sonic-pins"]
 	path = src/sonic-p4rt/sonic-pins
@@ -113,7 +113,7 @@
 	url = https://github.com/sonic-net/sonic-dhcp-relay.git
 [submodule "src/sonic-host-services"]
 	path = src/sonic-host-services
-	url = https://github.com/sonic-net/sonic-host-services
+	url = https://github.com/keboliu/sonic-host-services
 [submodule "src/sonic-gnmi"]
 	path = src/sonic-gnmi
 	url = https://github.com/sonic-net/sonic-gnmi.git
