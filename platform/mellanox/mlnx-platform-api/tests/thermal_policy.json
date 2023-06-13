@@ -1,6 +1,6 @@
-{   
+{
     "thermal_control_algorithm": {
-        "run_at_boot_up": "true",
+        "run_at_boot_up": "false",
         "fan_speed_when_suspend": "60"
     },
     "info_types": [
@@ -72,7 +72,8 @@
             ],
             "actions": [
                 {
-                    "type": "thermal.recover"
+                    "type": "thermal.recover",
+                    "status": "true"
                 }
             ]
         }

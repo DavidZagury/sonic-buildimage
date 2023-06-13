@@ -1,6 +1,6 @@
-{   
+{
     "thermal_control_algorithm": {
-        "run_at_boot_up": "true",
+        "run_at_boot_up": "false",
         "fan_speed_when_suspend": "60"
     },
     "info_types": [
@@ -16,13 +16,19 @@
     ],
     "policies": [
         {
-            "name": "any fan absence",
+            "name": "all fan and psu presence",
             "conditions": [
                 {
-                    "type": "fan.any.absence"
+                    "type": "fan.all.presence"
+                },
+                {
+                    "type": "psu.all.presence"
                 }
             ],
             "actions": [
+                {
+                    "type": "thermal.recover"
+                },
                 {
                     "type": "fan.all.set_speed",
                     "speed": "100"
@@ -38,19 +44,8 @@
             ],
             "actions": [
                 {
-                    "type": "fan.all.set_speed",
-                    "speed": "100"
-                }
-            ]
-        },
-        {
-            "name": "any fan broken",
-            "conditions": [
-                {
-                    "type": "fan.any.fault"
-                }
-            ],
-            "actions": [
+                    "type": "thermal.recover"
+                },
                 {
                     "type": "fan.all.set_speed",
                     "speed": "100"
@@ -58,16 +53,13 @@
             ]
         },
         {
-            "name": "all fan and psu presence",
+            "name": "all fan and psu presence 1",
             "conditions": [
                 {
                     "type": "fan.all.presence"
                 },
                 {
                     "type": "psu.all.presence"
-                },
-                {
-                    "type": "fan.all.good"
                 }
             ],
             "actions": [
