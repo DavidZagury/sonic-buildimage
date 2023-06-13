@@ -111,7 +111,7 @@ class TestFan:
     @patch('sonic_platform.psu.Psu.get_presence')
     @patch('sonic_platform.psu.Psu.get_powergood_status')
     @patch('os.path.exists')
-    def test_psu_fan_basic(self, mock_path_exists, mock_powergood, mock_presence, mock_read, mock_read_int):
+    def test_psu_fan_basic(self, mock_path_exists, mock_powergood, mock_presence, mock_read_int):
         mock_path_exists.return_value = False
         psu = Psu(0)
         fan = PsuFan(0, 1, psu)
@@ -124,7 +124,7 @@ class TestFan:
         assert fan.get_presence() is False
         mock_path_exists.return_value = True
         assert fan.get_presence() is True
-        mock_read.return_value = 7
+        mock_read_int.return_value = 7
         assert fan.get_target_speed() == 70
         mock_read_int.return_value = FAN_DIR_VALUE_INTAKE
         assert fan.get_direction() == Fan.FAN_DIRECTION_INTAKE
