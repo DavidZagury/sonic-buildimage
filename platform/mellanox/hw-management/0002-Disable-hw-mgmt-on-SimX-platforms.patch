@@ -1,18 +1,19 @@
-From 422b64397f2f33b394d037820f0ceb4c09e3a725 Mon Sep 17 00:00:00 2001
-From: Alexander Allen <arallen@nvidia.com>
-Date: Fri, 21 Jan 2022 16:47:19 +0000
-Subject: [PATCH 2/4] Disable hw-mgmt on SimX platforms
+From 451d00493abe91f37980c532833b8b788a66adf3 Mon Sep 17 00:00:00 2001
+From: Kebo Liu <kebol@nvidia.com>
+Date: Wed, 14 Jun 2023 15:13:46 +0800
+Subject: [PATCH] Disable hw-mgmt on SimX platforms
 
+Signed-off-by: Kebo Liu <kebol@nvidia.com>
 ---
- usr/usr/bin/hw-management-ready.sh | 11 +++++++----
+ usr/usr/bin/hw-management-ready.sh | 12 ++++++++----
  usr/usr/bin/hw-management.sh       |  9 +++++++++
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ 2 files changed, 17 insertions(+), 4 deletions(-)
 
 diff --git a/usr/usr/bin/hw-management-ready.sh b/usr/usr/bin/hw-management-ready.sh
-index 88672a8..7558c68 100755
+index f7dc27b..614fe33 100755
 --- a/usr/usr/bin/hw-management-ready.sh
 +++ b/usr/usr/bin/hw-management-ready.sh
-@@ -51,17 +51,20 @@ if [ -d /var/run/hw-management ]; then
+@@ -51,13 +51,15 @@ if [ -d /var/run/hw-management ]; then
  	rm -fr /var/run/hw-management
  fi
  
@@ -26,9 +27,13 @@ index 88672a8..7558c68 100755
  	fi
  	;;
 -*)
++
 +    *)
- 	if [ ! -d /sys/devices/platform/mlxplat/mlxreg-hotplug/hwmon ]; then
- 		timeout 180 bash -c 'until [ -d /sys/devices/platform/mlxplat/mlxreg-hotplug/hwmon ]; do sleep 0.2; done'
+ 	arch=$(uname -m)
+ 	if [ "$arch" = "aarch64" ]; then
+ 		plat_path=/sys/devices/platform/MLNXBF49:00
+@@ -68,6 +70,8 @@ VMOD0014)
+ 		timeout 180 bash -c 'until [ -d ${plat_path}/mlxreg-hotplug/hwmon ]; do sleep 0.2; done'
  	fi
  	;;
 -esac
@@ -38,10 +43,10 @@ index 88672a8..7558c68 100755
  echo "Start Chassis HW management service."
  logger -t hw-management -p daemon.notice "Start Chassis HW management service."
 diff --git a/usr/usr/bin/hw-management.sh b/usr/usr/bin/hw-management.sh
-index 1ee05b5..50d922b 100755
+index 120bf2e..49dac42 100755
 --- a/usr/usr/bin/hw-management.sh
 +++ b/usr/usr/bin/hw-management.sh
-@@ -2310,6 +2310,13 @@ do_chip_down()
+@@ -2494,6 +2494,13 @@ do_chip_down()
  	/usr/bin/hw-management-thermal-events.sh change hotplug_asic down %S %p
  }
  
@@ -55,8 +60,8 @@ index 1ee05b5..50d922b 100755
  __usage="
  Usage: $(basename "$0") [Options]
  
-@@ -2335,6 +2342,8 @@ Options:
- 	force-reload	Performs hw-management 'stop' and the 'start.
+@@ -2520,6 +2527,8 @@ Options:
+ 	reset-cause	Output system reset cause.
  "
  
 +check_simx
@@ -65,5 +70,5 @@ index 1ee05b5..50d922b 100755
  	start)
  		if [ -d /var/run/hw-management ]; then
 -- 
-2.20.1
+1.9.1
 
