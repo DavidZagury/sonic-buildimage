@@ -34,16 +34,16 @@ endif
 export MLNX_SDK_SOURCE_BASE_URL MLNX_SDK_VERSION MLNX_SDK_ISSU_VERSION MLNX_SDK_DEB_VERSION MLNX_ASSETS_GITHUB_URL
 
 MLNX_SDK_RDEBS += $(APPLIBS) $(SX_COMPLIB) $(SX_EXAMPLES) \
-                  $(SX_GEN_UTILS) $(SX_SCEW) $(SXD_LIBS) $(WJH_LIBS) $(SX_ACL_HELPER) \
+                  $(SX_GEN_UTILS) $(SXD_LIBS) $(WJH_LIBS) $(SX_ACL_HELPER) \
                   $(SX_HASH_CALC)
 
 MLNX_SDK_DEBS += $(APPLIBS_DEV) $(SX_COMPLIB_DEV) \
                  $(SX_COMPLIB_DEV_STATIC) $(SX_EXAMPLES_DEV) $(SX_GEN_UTILS_DEV) \
-                 $(SX_SCEW_DEV) $(SX_SCEW_DEV_STATIC) $(SXD_LIBS_DEV)\
-                 $(SXD_LIBS_DEV_STATIC) $(WJH_LIBS_DEV) $(SX_ACL_HELPER_DEV) $(SX_HASH_CALC)
+                 $(SXD_LIBS_DEV) $(SXD_LIBS_DEV_STATIC) $(WJH_LIBS_DEV) \
+                 $(SX_ACL_HELPER_DEV) $(SX_HASH_CALC)
 
 MLNX_SDK_DBG_DEBS += $(APPLIBS_DBGSYM) $(SX_COMPLIB_DBGSYM) \
-         $(SX_EXAMPLES_DBGSYM) $(SX_GEN_UTILS_DBGSYM) $(SX_SCEW_DBGSYM) \
+         $(SX_EXAMPLES_DBGSYM) $(SX_GEN_UTILS_DBGSYM) \
          $(SXD_LIBS_DBGSYM) $(WJH_LIBS_DBGSYM) $(SX_ACL_HELPER_DBGSYM) \
          $(SX_HASH_CALC_DBGSYM)
 
@@ -69,8 +69,8 @@ endif
 
 SX_EXAMPLES = sx-examples_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
 $(SX_EXAMPLES)_SRC_PATH = $(PLATFORM_PATH)/sdk-src/sx-examples
-$(SX_EXAMPLES)_DEPENDS += $(APPLIBS_DEV) $(SX_SCEW_DEV) $(SXD_LIBS_DEV)
-$(SX_EXAMPLES)_RDEPENDS += $(APPLIBS) $(SX_SCEW) $(SXD_LIBS)
+$(SX_EXAMPLES)_DEPENDS += $(APPLIBS_DEV) $(SXD_LIBS_DEV)
+$(SX_EXAMPLES)_RDEPENDS += $(APPLIBS) $(SXD_LIBS)
 SX_EXAMPLES_DEV = sx-examples-dev_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
 $(eval $(call add_derived_package,$(SX_EXAMPLES),$(SX_EXAMPLES_DEV)))
 SX_EXAMPLES_DBGSYM = sx-examples-dbgsym_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
@@ -87,15 +87,6 @@ $(eval $(call add_derived_package,$(SX_GEN_UTILS),$(SX_GEN_UTILS_DEV)))
 SX_GEN_UTILS_DBGSYM = sx-gen-utils-dbgsym_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
 ifeq ($(SDK_FROM_SRC),y)
 $(eval $(call add_derived_package,$(SX_GEN_UTILS),$(SX_GEN_UTILS_DBGSYM)))
-endif
-
-SX_SCEW = sx-scew_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
-$(SX_SCEW)_SRC_PATH = $(PLATFORM_PATH)/sdk-src/sx-scew
-SX_SCEW_DEV = sx-scew-dev_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
-$(eval $(call add_derived_package,$(SX_SCEW),$(SX_SCEW_DEV)))
-SX_SCEW_DBGSYM = sx-scew-dbgsym_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
-ifeq ($(SDK_FROM_SRC),y)
-$(eval $(call add_derived_package,$(SX_SCEW),$(SX_SCEW_DBGSYM)))
 endif
 
 SXD_LIBS = sxd-libs_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
@@ -131,7 +122,7 @@ endif
 
 WJH_LIBS = wjh-libs_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
 $(WJH_LIBS)_SRC_PATH = $(PLATFORM_PATH)/sdk-src/wjh-libs
-$(WJH_LIBS)_DEPENDS += $(SX_COMPLIB_DEV) $(SXD_LIBS_DEV) $(APPLIBS_DEV) $(SX_ACL_HELPER_DEV) $(SX_SCEW_DEV)
+$(WJH_LIBS)_DEPENDS += $(SX_COMPLIB_DEV) $(SXD_LIBS_DEV) $(APPLIBS_DEV) $(SX_ACL_HELPER_DEV)
 $(WJH_LIBS)_RDEPENDS += $(SX_COMPLIB) $(PYTHON_SDK_API) $(SX_ACL_HELPER)
 WJH_LIBS_DEV = wjh-libs-dev_1.mlnx.$(MLNX_SDK_DEB_VERSION)_$(CONFIGURED_ARCH).deb
 $(eval $(call add_derived_package,$(WJH_LIBS),$(WJH_LIBS_DEV)))
