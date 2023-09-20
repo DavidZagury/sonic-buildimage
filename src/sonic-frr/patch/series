@@ -16,3 +16,6 @@ Disable-ipv6-src-address-test-in-pceplib.patch
 0029-bgpd-Change-log-level-for-graceful-restart-events.patch
 0030-zebra-remove-duplicated-nexthops-when-sending-fpm-msg.patch
 0031-lib-Fix-corruption-when-routemap-delete-add-sequence.patch
+0032-bgpd-Do-not-process-NLRIs-if-the-attribute-length-is-zero.patch
+0033-bgpd-Limit-flowspec-to-no-attribute-means-a-implicit-withdrawal.patch
+0034-bgpd-Use-treat-as-withdraw-for-tunnel-encapsulation-attribute.patch
