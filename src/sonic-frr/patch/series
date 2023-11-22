@@ -27,3 +27,4 @@ cross-compile-changes.patch
 0025-bgpd-Use-treat-as-withdraw-for-tunnel-encapsulation-.patch
 0026-zebra-Add-encap-type-when-building-packet-for-FPM.patch
 0027-zebra-Fix-non-notification-of-better-admin-won.patch
+0028-zebra-Fix-fpm-multipath-encap-addition.patch
