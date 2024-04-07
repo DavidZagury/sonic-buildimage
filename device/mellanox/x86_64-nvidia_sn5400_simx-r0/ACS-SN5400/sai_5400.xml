@@ -25,7 +25,7 @@
         <issu-enabled>1</issu-enabled>
 
         <!-- Number of ports in the following port list -->
-        <number-of-physical-ports>65</number-of-physical-ports>
+        <number-of-physical-ports>66</number-of-physical-ports>
 
         <!-- List of ports in the device -->
         <ports-list>
