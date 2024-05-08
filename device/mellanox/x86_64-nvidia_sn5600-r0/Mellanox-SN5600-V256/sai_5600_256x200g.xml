@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
   Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
   Apache-2.0
@@ -14,7 +15,6 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<?xml version="1.0"?>
 <root>
     <platform_info type="5600">
 
