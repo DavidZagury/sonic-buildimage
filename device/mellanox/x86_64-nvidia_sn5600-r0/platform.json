@@ -1245,6 +1245,13 @@
                 "2x400G[200G,100G,50G,40G,25G,10G]": ["etp64a", "etp64b"],
                 "4x200G[100G,50G,25G,10G]": ["etp64a", "etp64b", "etp64c", "etp64d"]
             }
+        },
+        "Ethernet512": {
+            "index": "65",
+            "lanes": "512",
+            "breakout_modes": {
+                "1x25G[10G]": ["etp65"]
+            }
         }
     }
 }
