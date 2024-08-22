@@ -12,7 +12,6 @@ include $(PLATFORM_PATH)/docker-saiserver-mlnx.dep
 include $(PLATFORM_PATH)/one-image.dep
 include $(PLATFORM_PATH)/libsaithrift-dev.dep
 include $(PLATFORM_PATH)/mlnx-ffb.dep
-include $(PLATFORM_PATH)/issu-version.dep
 include $(PLATFORM_PATH)/mlnx-onie-fw-update.dep
 include $(PLATFORM_PATH)/mlnx-ssd-fw-update.dep
 include $(PLATFORM_PATH)/install-pending-fw.dep
