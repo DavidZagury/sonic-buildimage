@@ -21,6 +21,8 @@
 #include "port/porthlpr.h"
 #include "port/portschema.h"
 
+#include "high_frequency_telemetry/counternameupdater.h"
+
 #define FCS_LEN 4
 #define VLAN_TAG_LEN 4
 #define PORT_STAT_COUNTER_FLEX_COUNTER_GROUP "PORT_STAT_COUNTER"
@@ -256,7 +258,8 @@ public:
     bool setPortPtTimestampTemplate(const Port& port, sai_port_path_tracing_timestamp_type_t ts_type);
 
 private:
-    unique_ptr<Table> m_counterTable;
+    unique_ptr<CounterNameMapUpdater> m_counterNameMapUpdater;
+    // unique_ptr<Table> m_counterTable;
     unique_ptr<Table> m_counterSysPortTable;
     unique_ptr<Table> m_counterLagTable;
     unique_ptr<Table> m_portTable;
