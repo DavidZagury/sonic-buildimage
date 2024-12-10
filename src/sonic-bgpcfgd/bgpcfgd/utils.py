@@ -12,9 +12,10 @@ def run_command(command, shell=False, hide_errors=False):
     :param hide_errors: don't report errors to syslog when True. Type: Boolean
     :return: Tuple: integer exit code from the command, stdout as a string, stderr as a string
     """
-    log_debug("execute command '%s'." % str(command))
+    log_debug("DEDDY execute command '%s'." % str(command))
     p = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
     stdout, stderr = p.communicate()
+    log_debug("DEDDY executed command '%s'." % str(command))
     if p.returncode != 0:
         if not hide_errors:
             print_tuple = p.returncode, str(command), stdout, stderr
