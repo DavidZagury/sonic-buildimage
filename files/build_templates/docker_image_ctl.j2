@@ -708,10 +708,12 @@ start() {
 {%- if docker_container_name == "gbsyncd" %}
         -v /var/run/docker-syncd$DEV:/var/run/sswsyncd \
         "docker-$GBSYNCD_PLATFORM":latest \
-{%- elif docker_container_name is defined and docker_image_version is not none %}
-        {{docker_container_name}}:{{docker_image_version}} \
 {%- elif docker_image_name is defined %}
+        {%- if docker_image_version is defined and docker_image_version is not none %}
+        {{docker_image_name}}:{{docker_image_version}} \
+        {%- else %}
         {{docker_image_name}}:latest \
+        {%- endif %}
 {%- else %}
         {{docker_image_id}} \
 {%- endif %}
