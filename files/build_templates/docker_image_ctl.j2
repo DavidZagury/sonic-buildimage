@@ -709,7 +709,7 @@ start() {
         -v /var/run/docker-syncd$DEV:/var/run/sswsyncd \
         "docker-$GBSYNCD_PLATFORM":latest \
 {%- elif docker_image_name is defined %}
-        {%- if docker_built_in is defined and docker_built_in %}
+        {%- if build_time_flag is defined and build_time_flag == "y" %}
         {{docker_image_name}}:latest \
         {%- else %}
         {{docker_image_name}}:{{docker_image_version}} \
