@@ -26,7 +26,7 @@ DEFAULT_BUILD_LOG_TIMESTAMP = none
 # This options will speed up docker image build time.
 # NOTE: SONIC_USE_DOCKER_BUILDKIT will produce larger installable SONiC image
 # because of a docker bug (more details: https://github.com/moby/moby/issues/38903)
-# SONIC_USE_DOCKER_BUILDKIT = y
+SONIC_USE_DOCKER_BUILDKIT = n
 
 # SONIC_CONFIG_USE_NATIVE_DOCKERD_FOR_BUILD - use native dockerd for build.
 # If set to y SONiC build container will use native dockerd instead of dind for faster build.
@@ -52,7 +52,7 @@ DEFAULT_USERNAME = admin
 DEFAULT_PASSWORD = YourPaSsWoRd
 
 # ENABLE_ZTP - installs Zero Touch Provisioning support.
-# ENABLE_ZTP = y
+ENABLE_ZTP = n
 
 # INCLUDE_PDE - Enable platform development enviroment
 # INCLUDE_PDE = y
@@ -62,7 +62,7 @@ DEFAULT_PASSWORD = YourPaSsWoRd
 
 # ENABLE_PFCWD_ON_START - if set to y PFC Watchdog (PFCWD) will be enabled all server-facing ports
 # by default for TOR switch
-# ENABLE_PFCWD_ON_START = y
+ENABLE_PFCWD_ON_START = n
 
 # INSTALL_DEBUG_TOOLS - installs debugging tools in baseline docker
 # Uncomment next line to enable:
@@ -147,7 +147,7 @@ INCLUDE_MGMT_FRAMEWORK = y
 ENABLE_HOST_SERVICE_ON_START = y
 
 # INCLUDE_RESTAPI - build docker-sonic-restapi for configuring the switch using REST APIs
-INCLUDE_RESTAPI ?= n
+INCLUDE_RESTAPI ?= y
 
 # INCLUDE_NAT - build docker-nat for nat support
 INCLUDE_NAT = y
@@ -314,7 +314,7 @@ ENABLE_BOOTCHART = n
 # INCLUDE_FIPS - support FIPS feature, only for amd64 or arm64, armhf not supported yet
 # ENABLE_FIPS - support FIPS flag, if enabled, no additional config requred for the image to support FIPS
 INCLUDE_FIPS ?= y
-ENABLE_FIPS ?= n
+ENABLE_FIPS ?= y
 
 # SONIC_SLAVE_DOCKER_DRIVER - set the sonic slave docker storage driver
 SONIC_SLAVE_DOCKER_DRIVER ?= overlay2
