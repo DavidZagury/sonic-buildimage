@@ -7,7 +7,7 @@ MLNX_SAI_ASSETS_URL = $(MLNX_SAI_ASSETS_GITHUB_URL)/releases/download/$(MLNX_SAI
 MLNX_SAI_DEB_VERSION = $(subst -,.,$(subst _,.,$(MLNX_SAI_VERSION)))
 
 # Place here URL where SAI sources exist
-MLNX_SAI_SOURCE_BASE_URL = 
+MLNX_SAI_SOURCE_BASE_URL = NOURL
 
 ifneq ($(MLNX_SAI_SOURCE_BASE_URL), )
 SAI_FROM_SRC = y
