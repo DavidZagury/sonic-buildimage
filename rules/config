@@ -7,6 +7,8 @@
 # Uncomment next line to enable:
 # SONIC_CONFIG_PRINT_DEPENDENCIES = y
 
+DOCKER_BUILDER_USER_MOUNT = /auto/swgwork/maksympr/share/hft/local_releases:/auto/swgwork/maksympr/share/hft/local_releases:rslave
+
 # SONIC_CONFIG_BUILD_JOBS - set number of jobs for parallel build.
 # Corresponding -j argument will be passed to make command inside docker
 # container.
