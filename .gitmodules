@@ -8,11 +8,11 @@
 	branch = 202412
 [submodule "sonic-sairedis"]
 	path = src/sonic-sairedis
-	url = https://github.com/nvidia-sonic/sonic-sairedis
+	url = https://github.com/DavidZagury/sonic-sairedis
 	branch = 202412
 [submodule "sonic-swss"]
 	path = src/sonic-swss
-	url = https://github.com/nvidia-sonic/sonic-swss
+	url = https://github.com/DavidZagury/sonic-swss
 	branch = 202412
 [submodule "src/p4c-bm/p4c-bm"]
 	path = platform/p4/p4c-bm/p4c-bm
