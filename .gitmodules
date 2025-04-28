@@ -1,6 +1,6 @@
 [submodule "sonic-swss-common"]
 	path = src/sonic-swss-common
-	url = https://github.com/Azure/sonic-swss-common.msft
+	url = https://github.com/nvidia-sonic/sonic-swss-common
 	branch = 202412
 [submodule "sonic-linux-kernel"]
 	path = src/sonic-linux-kernel
@@ -8,11 +8,11 @@
 	branch = 202412
 [submodule "sonic-sairedis"]
 	path = src/sonic-sairedis
-	url = https://github.com/Azure/sonic-sairedis.msft
+	url = https://github.com/nvidia-sonic/sonic-sairedis
 	branch = 202412
 [submodule "sonic-swss"]
 	path = src/sonic-swss
-	url = https://github.com/Azure/sonic-swss.msft
+	url = https://github.com/nvidia-sonic/sonic-swss
 	branch = 202412
 [submodule "src/p4c-bm/p4c-bm"]
 	path = platform/p4/p4c-bm/p4c-bm
@@ -37,18 +37,18 @@
 	url = https://github.com/p4lang/ptf.git
 [submodule "src/sonic-utilities"]
 	path = src/sonic-utilities
-	url = https://github.com/Azure/sonic-utilities.msft
+	url = https://github.com/nvidia-sonic/sonic-utilities
 	branch = 202412
 [submodule "platform/broadcom/sonic-platform-modules-arista"]
 	path = platform/broadcom/sonic-platform-modules-arista
 	url = https://github.com/aristanetworks/sonic
 [submodule "src/sonic-platform-common"]
 	path = src/sonic-platform-common
-	url = https://github.com/Azure/sonic-platform-common.msft
+	url = https://github.com/nvidia-sonic/sonic-platform-common
 	branch = 202412
 [submodule "src/sonic-platform-daemons"]
 	path = src/sonic-platform-daemons
-	url = https://github.com/Azure/sonic-platform-daemons.msft
+	url = https://github.com/nvidia-sonic/sonic-platform-daemons
 	branch = 202412
 [submodule "src/sonic-platform-pde"]
 	path = src/sonic-platform-pde
@@ -116,7 +116,7 @@
 	branch = 202411
 [submodule "src/sonic-host-services"]
 	path = src/sonic-host-services
-	url = https://github.com/sonic-net/sonic-host-services
+	url = https://github.com/nvidia-sonic/sonic-host-services
 	branch = 202411
 [submodule "src/sonic-gnmi"]
 	path = src/sonic-gnmi
