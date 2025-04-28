@@ -1,0 +1,49 @@
+From 19dc7130c38b1590d4f4c842354010e81bd78ad5 Mon Sep 17 00:00:00 2001
+From: Mark Stapp <mjs@cisco.com>
+Date: Wed, 5 Jun 2024 14:37:41 -0400
+Subject: [PATCH] zebra: fix incoming FPM message length validation
+
+Validate incoming message length against correct
+(struct rtmsg) len, not top-level netlink message header size.
+
+Signed-off-by: Mark Stapp <mjs@cisco.com>
+---
+ zebra/dplane_fpm_nl.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/zebra/dplane_fpm_nl.c b/zebra/dplane_fpm_nl.c
+index 408245856..1d4c644ca 100644
+--- a/zebra/dplane_fpm_nl.c
++++ b/zebra/dplane_fpm_nl.c
+@@ -684,14 +684,6 @@ static void fpm_read(struct event *t)
+ 		hdr_available_bytes = fpm.msg_len - FPM_MSG_HDR_LEN;
+ 		available_bytes -= hdr_available_bytes;
+ 
+-		/* Sanity check: must be at least header size. */
+-		if (hdr->nlmsg_len < sizeof(*hdr)) {
+-			zlog_warn(
+-				"%s: [seq=%u] invalid message length %u (< %zu)",
+-				__func__, hdr->nlmsg_seq, hdr->nlmsg_len,
+-				sizeof(*hdr));
+-			continue;
+-		}
+ 		if (hdr->nlmsg_len > fpm.msg_len) {
+ 			zlog_warn(
+ 				"%s: Received a inner header length of %u that is greater than the fpm total length of %u",
+@@ -721,6 +713,13 @@ static void fpm_read(struct event *t)
+ 
+ 		switch (hdr->nlmsg_type) {
+ 		case RTM_NEWROUTE:
++			/* Sanity check: need at least route msg header size. */
++			if (hdr->nlmsg_len < sizeof(struct rtmsg)) {
++				zlog_warn("%s: [seq=%u] invalid message length %u (< %zu)",
++					  __func__, hdr->nlmsg_seq,
++					  hdr->nlmsg_len, sizeof(struct rtmsg));
++				break;
++			}
+ 
+ 			/*
+ 			 * Parse the route data into a dplane ctx, add to ctx list
+-- 
+2.39.5
+
