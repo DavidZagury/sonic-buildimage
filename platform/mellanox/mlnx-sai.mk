@@ -1,6 +1,6 @@
 # Mellanox SAI
 
-MLNX_SAI_VERSION = SAIBuild2411.32.0.0
+MLNX_SAI_VERSION = SAIBuild2412.31.2.2
 MLNX_SAI_ASSETS_GITHUB_URL = https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins
 MLNX_SAI_ASSETS_RELEASE_TAG = sai-$(MLNX_SAI_VERSION)-$(BLDENV)-$(CONFIGURED_ARCH)
 MLNX_SAI_ASSETS_URL = $(MLNX_SAI_ASSETS_GITHUB_URL)/releases/download/$(MLNX_SAI_ASSETS_RELEASE_TAG)
@@ -9,13 +9,17 @@ MLNX_SAI_DEB_VERSION = $(subst -,.,$(subst _,.,$(MLNX_SAI_VERSION)))
 # Place here URL where SAI sources exist
 MLNX_SAI_SOURCE_BASE_URL = 
 
-ifneq ($(MLNX_SAI_SOURCE_BASE_URL), )
-SAI_FROM_SRC = y
-else
-SAI_FROM_SRC = n
-endif
+# Optional local file path. If set, it will be used instead of downloading from the remote server.
+# Note: When using a local SAI file, DOCKER_BUILDER_USER_MOUNT must also be configured to ensure 
+# the file is mounted inside the docker build environment.
+# Example:
+# DOCKER_BUILDER_USER_MOUNT = /auto/local_build:/auto/local_build:rslave
+MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/share/hft/local_releases/mlnx-sai.1.mlnx.SAIBuild2412.31.2.2-local.orig.tar.gz
 
-export MLNX_SAI_VERSION MLNX_SAI_SOURCE_BASE_URL
+# Set SAI_FROM_SRC based on source availability
+SAI_FROM_SRC = $(if $(or $(MLNX_SAI_SOURCE_BASE_URL),$(MLNX_LOCAL_SAI_FILE)),y,n)
+
+export MLNX_SAI_VERSION MLNX_SAI_SOURCE_BASE_URL MLNX_LOCAL_SAI_FILE
 
 MLNX_SAI = mlnx-sai_1.mlnx.$(MLNX_SAI_VERSION)_$(CONFIGURED_ARCH).deb
 $(MLNX_SAI)_SRC_PATH = $(PLATFORM_PATH)/mlnx-sai
