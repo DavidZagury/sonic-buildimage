@@ -10,7 +10,7 @@ DERIVED_TARGETS = mlnx-sai-dbgsym_1.mlnx.$(MLNX_SAI_VERSION)_$(CONFIGURED_ARCH).
 # the file is mounted inside the docker build environment.
 # DOCKER_BUILDER_USER_MOUNT = /auto/swgwork/maksympr/share/hft/local_releases:/auto/swgwork/maksympr/share/hft/local_releases:rslave
 #MLNX_LOCAL_SAI_FILE ?= 
-MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/share/hft/local_releases/mlnx-sai.1.mlnx.SAIBuild2412.31.1.4-local.orig.tar.gz
+MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/share/hft/local_releases/mlnx-sai.1.mlnx.SAIBuild2411.32.2.8-local.orig.tar.gz
 echo "MLNX_LOCAL_SAI_FILE: $(MLNX_LOCAL_SAI_FILE)"
 echo "MLNX_SAI_SOURCE_BASE_URL: $(MLNX_SAI_SOURCE_BASE_URL)"
 echo "MLNX_SAI_VERSION: $(MLNX_SAI_VERSION)"
