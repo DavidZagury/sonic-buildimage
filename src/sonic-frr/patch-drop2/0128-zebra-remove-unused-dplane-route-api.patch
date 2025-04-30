@@ -1,0 +1,63 @@
+From 66bbf206c8b04cdb0785093503aeb1a3a7a8eadd Mon Sep 17 00:00:00 2001
+From: Mark Stapp <mjs@cisco.com>
+Date: Thu, 21 Nov 2024 15:16:16 -0500
+Subject: [PATCH] zebra: remove unused dplane route api
+
+Remove a route api that's no longer used after refactoring the
+netlink and FPM code.
+
+Signed-off-by: Mark Stapp <mjs@cisco.com>
+---
+ zebra/zebra_dplane.c | 14 --------------
+ zebra/zebra_dplane.h | 10 ----------
+ 2 files changed, 24 deletions(-)
+
+diff --git a/zebra/zebra_dplane.c b/zebra/zebra_dplane.c
+index dd5b53fae..b1d12e1f3 100644
+--- a/zebra/zebra_dplane.c
++++ b/zebra/zebra_dplane.c
+@@ -6986,20 +6986,6 @@ kernel_dplane_process_ipset_entry(struct zebra_dplane_provider *prov,
+ 	dplane_provider_enqueue_out_ctx(prov, ctx);
+ }
+ 
+-void dplane_rib_add_multipath(afi_t afi, safi_t safi, struct prefix *p,
+-			      struct prefix_ipv6 *src_p, struct route_entry *re,
+-			      struct nexthop_group *ng, int startup,
+-			      struct zebra_dplane_ctx *ctx)
+-{
+-	if (!ctx)
+-		rib_add_multipath(afi, safi, p, src_p, re, ng, startup);
+-	else {
+-		dplane_ctx_route_init_basic(ctx, dplane_ctx_get_op(ctx), re, p,
+-					    src_p, afi, safi);
+-		dplane_provider_enqueue_to_zebra(ctx);
+-	}
+-}
+-
+ /*
+  * Kernel provider callback
+  */
+diff --git a/zebra/zebra_dplane.h b/zebra/zebra_dplane.h
+index c663ecb60..f8260d8c6 100644
+--- a/zebra/zebra_dplane.h
++++ b/zebra/zebra_dplane.h
+@@ -1233,16 +1233,6 @@ void zebra_dplane_shutdown(void);
+ void zebra_dplane_startup_stage(struct zebra_ns *zns,
+ 				enum zebra_dplane_startup_notifications spot);
+ 
+-/*
+- * decision point for sending a routing update through the old
+- * straight to zebra master pthread or through the dplane to
+- * the master pthread for handling
+- */
+-void dplane_rib_add_multipath(afi_t afi, safi_t safi, struct prefix *p,
+-			      struct prefix_ipv6 *src_p, struct route_entry *re,
+-			      struct nexthop_group *ng, int startup,
+-			      struct zebra_dplane_ctx *ctx);
+-
+ enum zebra_dplane_startup_notifications
+ dplane_ctx_get_startup_spot(struct zebra_dplane_ctx *ctx);
+ 
+-- 
+2.39.5
+
