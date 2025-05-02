@@ -20,6 +20,7 @@ ifeq ($(CROSS_BUILD_ENVIRON), y)
 endif
 	stg branch --create $(STG_BRANCH) $(FRR_TAG)
 	stg import -s ../patch/series
+	stg import -s ../patch-drop2/series
 	gbp dch --ignore-branch --new-version=$(FRR_VERSION)-sonic-$(FRR_SUBVERSION) --dch-opt="--force-bad-version" --commit --git-author
 	cp ../$(DPLANE_FPM_SONIC_MODULE) zebra/
 
