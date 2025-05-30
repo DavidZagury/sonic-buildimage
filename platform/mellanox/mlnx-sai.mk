@@ -1,6 +1,6 @@
 # Mellanox SAI
 
-MLNX_SAI_VERSION = SAIBuild2411.32.0.0
+MLNX_SAI_VERSION = SAIBuild2412.31.1.4
 MLNX_SAI_ASSETS_GITHUB_URL = https://github.com/Mellanox/Spectrum-SDK-Drivers-SONiC-Bins
 MLNX_SAI_ASSETS_RELEASE_TAG = sai-$(MLNX_SAI_VERSION)-$(BLDENV)-$(CONFIGURED_ARCH)
 MLNX_SAI_ASSETS_URL = $(MLNX_SAI_ASSETS_GITHUB_URL)/releases/download/$(MLNX_SAI_ASSETS_RELEASE_TAG)
@@ -14,7 +14,7 @@ MLNX_SAI_SOURCE_BASE_URL =
 # the file is mounted inside the docker build environment.
 # Example:
 # DOCKER_BUILDER_USER_MOUNT = /auto/local_build:/auto/local_build:rslave
-MLNX_LOCAL_SAI_FILE ?= 
+MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/share/hft/local_releases/mlnx-sai.1.mlnx.SAIBuild2412.31.1.4-local.orig.tar.gz
 
 # Set SAI_FROM_SRC based on source availability
 SAI_FROM_SRC = $(if $(or $(MLNX_SAI_SOURCE_BASE_URL),$(MLNX_LOCAL_SAI_FILE)),y,n)
