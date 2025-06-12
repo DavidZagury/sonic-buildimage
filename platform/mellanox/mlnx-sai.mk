@@ -14,7 +14,7 @@ MLNX_SAI_SOURCE_BASE_URL =
 # the file is mounted inside the docker build environment.
 # Example:
 # DOCKER_BUILDER_USER_MOUNT = /auto/local_build:/auto/local_build:rslave
-MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/mlnx-sai.1.mlnx.SAIBuild2412.31.2.2-local.orig.tar.gz
+MLNX_LOCAL_SAI_FILE=/auto/swgwork/maksympr/share/hft/local_releases/mlnx-sai.1.mlnx.SAIBuild2412.31.2.2-local.orig.tar.gz
 
 # Set SAI_FROM_SRC based on source availability
 SAI_FROM_SRC = $(if $(or $(MLNX_SAI_SOURCE_BASE_URL),$(MLNX_LOCAL_SAI_FILE)),y,n)
