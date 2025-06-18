@@ -1,1 +1,2 @@
 SAI_INIT_CONFIG_FILE=/usr/share/sonic/hwsku/sai_4410.xml
+SAI_MIRROR_SESSION_HW_ID_RESERVATION=7
