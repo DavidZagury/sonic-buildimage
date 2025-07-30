@@ -382,6 +382,7 @@ impl IpfixActor {
     /// * `template_id` - ID of the template to apply
     fn update_applied_template(&mut self, template_id: u16) {
         if !self.temporary_templates_map.contains_key(&template_id) {
+            debug!("Template ID {} not found in temporary templates map", template_id);
             return;
         }
         let msg_key = self
@@ -397,7 +398,9 @@ impl IpfixActor {
                 template_ids.push(k);
             });
         self.temporary_templates_map.retain(|_, v| *v != msg_key);
-        self.applied_templates_map.insert(msg_key, template_ids);
+        self.applied_templates_map.insert(msg_key.clone(), template_ids);
+        debug!("Applied template ID {} for key '{}', total applied templates: {}", 
+               template_id, msg_key, self.applied_templates_map.len());
     }
 
     /// Processes IPFIX template messages and stores them for later use.
@@ -422,6 +425,12 @@ impl IpfixActor {
         
         debug!("Processing IPFIX templates for key: {}, object_names: {:?}", 
                templates.key, templates.object_names);
+        
+        // Print first 64 bytes of raw data for debugging
+        let preview_size = std::cmp::min(64, templates_data.len());
+        let hex_preview: String = templates_data.iter().take(preview_size)
+            .map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+        debug!("First {} bytes of template raw data: {}", preview_size, hex_preview);
         
         // Add detailed debug logging for template content if debug level is enabled
         if log::log_enabled!(log::Level::Debug) {
@@ -513,6 +522,27 @@ impl IpfixActor {
         let mut cache = cache_ref.borrow_mut();
         let mut read_size: usize = 0;
         let mut messages: Vec<SAIStatsMessage> = Vec::new();
+        
+        debug!("Processing IPFIX data records buffer of size: {} bytes", records.len());
+        
+        // Print first 64 bytes of raw data for debugging
+        let preview_size = std::cmp::min(64, records.len());
+        let hex_preview: String = records.iter().take(preview_size)
+            .map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+        debug!("First {} bytes of raw data: {}", preview_size, hex_preview);
+        
+        // Check if we have any templates available - just log a simple message
+        debug!("Processing data records with template cache");
+        
+        // Skip netlink and genetlink headers (20 bytes total)
+        if records.len() < 20 {
+            warn!("Buffer too small to contain netlink/genetlink headers");
+            return messages;
+        }
+        
+        read_size = 20; // Start parsing after netlink/genetlink headers
+        debug!("Skipped 20 bytes of netlink/genetlink headers, starting IPFIX parsing at offset 20");
+        
         while read_size < records.len() {
             let len = get_ipfix_message_length(&records[read_size..]);
             let len = match len {
@@ -522,20 +552,175 @@ impl IpfixActor {
                               len, read_size, records.len());
                         break;
                     }
+                    
+                    // Debug output to show IPFIX message length interpretation
+                    if log::log_enabled!(log::Level::Debug) {
+                        let ipfix_data = &records[read_size..];
+                        if ipfix_data.len() >= 4 {
+                            debug!("IPFIX message length at offset {}: raw bytes [2-3]: {:02x} {:02x}, interpreted as network byte order: {}", 
+                                   read_size, ipfix_data[2], ipfix_data[3], len);
+                        }
+                    }
+                    
                     len
                 },
                 Err(e) => {
                     warn!("Failed to get IPFIX message length at offset {}: {}", read_size, e);
+                    
+                    // Enhanced logging to understand the data format issue
+                    if log::log_enabled!(log::Level::Debug) {
+                        let remaining_data = &records[read_size..];
+                        let preview_size = std::cmp::min(64, remaining_data.len());
+                        let hex_preview: String = remaining_data.iter().take(preview_size)
+                            .map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+                        
+                        debug!("Data format analysis at offset {}:", read_size);
+                        debug!("  Remaining data size: {} bytes", remaining_data.len());
+                        debug!("  First {} bytes (hex): {}", preview_size, hex_preview);
+                        
+                        // Add simple raw data breakdown
+                        if remaining_data.len() >= 20 {
+                            debug!("  Raw data breakdown:");
+                            debug!("    Netlink header (16 bytes): {}", remaining_data.iter().take(16).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" "));
+                            debug!("    Genetlink header (4 bytes): {}", remaining_data.iter().skip(16).take(4).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" "));
+                            debug!("    IPFIX message start (32 bytes): {}", remaining_data.iter().skip(20).take(32).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" "));
+                        }
+                        
+                        // Try to interpret the first few bytes as different formats
+                        if remaining_data.len() >= 4 {
+                            let first_u16 = NetworkEndian::read_u16(&remaining_data[0..2]);
+                            let second_u16 = NetworkEndian::read_u16(&remaining_data[2..4]);
+                            
+                            debug!("  First 4 bytes interpretation:");
+                            debug!("    Raw bytes: {:02x} {:02x} {:02x} {:02x}", 
+                                   remaining_data[0], remaining_data[1], remaining_data[2], remaining_data[3]);
+                            debug!("    As network byte order u16 values: [{}] [{}]", first_u16, second_u16);
+                            
+                            // Check if this might be an IPFIX set (no message header)
+                            if first_u16 == 2 {
+                                debug!("    *** POTENTIAL ISSUE: First u16 is 2 (template set ID) ***");
+                                debug!("    This suggests data contains IPFIX sets without message headers");
+                                debug!("    Expected: [IPFIX Header] + [Sets]");
+                                debug!("    Actual:   [Sets only]");
+                            } else if first_u16 == 10 {
+                                debug!("    *** POTENTIAL ISSUE: First u16 is 10 (IPFIX version) ***");
+                                debug!("    This suggests data might have IPFIX headers but wrong format");
+                            } else {
+                                debug!("    *** UNKNOWN FORMAT: First u16 is {} ***", first_u16);
+                                debug!("    This doesn't match expected IPFIX format");
+                            }
+                            
+                            // Show what a proper IPFIX header should look like
+                            debug!("  Expected IPFIX message header format:");
+                            debug!("    Bytes 0-1:   Version (should be 10 = 0x000A)");
+                            debug!("    Bytes 2-3:   Message Length (16-bit network byte order)");
+                            debug!("    Bytes 4-7:   Export Time (32-bit network byte order)");
+                            debug!("    Bytes 8-11:  Sequence Number (32-bit network byte order)");
+                            debug!("    Bytes 12-15: Observation Domain ID (32-bit network byte order)");
+                        }
+                        
+                        // Log the full buffer structure for analysis
+                        if remaining_data.len() > 0 {
+                            debug!("  Full buffer analysis:");
+                            let mut offset = 0;
+                            let mut set_count = 0;
+                            
+                            while offset + 4 <= remaining_data.len() {
+                                let potential_set_id = NetworkEndian::read_u16(&remaining_data[offset..offset + 2]);
+                                let potential_length = NetworkEndian::read_u16(&remaining_data[offset + 2..offset + 4]);
+                                
+                                debug!("    Offset {}: Set ID={}, Length={}", offset, potential_set_id, potential_length);
+                                
+                                if potential_length < 4 || offset + potential_length as usize > remaining_data.len() {
+                                    debug!("    *** Invalid set length, stopping analysis ***");
+                                    break;
+                                }
+                                
+                                set_count += 1;
+                                offset += potential_length as usize;
+                                
+                                if set_count >= 5 { // Limit analysis to first 5 sets
+                                    debug!("    ... (showing first 5 sets only)");
+                                    break;
+                                }
+                            }
+                            
+                            // Analyze the buffer structure more deeply
+                            debug!("  Buffer structure analysis:");
+                            debug!("    - Total buffer size: {} bytes", remaining_data.len());
+                            debug!("    - First 16 bytes: {}", remaining_data.iter().take(16).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" "));
+                            
+                            // Check if this might be a netlink message with embedded data
+                            if remaining_data.len() > 16 {
+                                let nl_len = u32::from_le_bytes([remaining_data[0], remaining_data[1], remaining_data[2], remaining_data[3]]);
+                                let nl_type = u16::from_le_bytes([remaining_data[4], remaining_data[5]]);
+                                let nl_flags = u16::from_le_bytes([remaining_data[6], remaining_data[7]]);
+                                let nl_seq = u32::from_le_bytes([remaining_data[8], remaining_data[9], remaining_data[10], remaining_data[11]]);
+                                let nl_pid = u32::from_le_bytes([remaining_data[12], remaining_data[13], remaining_data[14], remaining_data[15]]);
+                                
+                                debug!("    - Potential netlink header:");
+                                debug!("      nl_len={}, nl_type={}, nl_flags={}, nl_seq={}, nl_pid={}", 
+                                       nl_len, nl_type, nl_flags, nl_seq, nl_pid);
+                                
+                                if nl_len > 16 && nl_len <= remaining_data.len() as u32 {
+                                    debug!("    - This appears to be a netlink message with {} bytes of payload", nl_len - 16);
+                                    debug!("    - IPFIX data should be in the netlink payload, not the header");
+                                }
+                            }
+                            
+                            debug!("  Analysis summary:");
+                            debug!("    - Data appears to contain {} IPFIX sets", set_count);
+                            debug!("    - Missing IPFIX message headers");
+                        }
+                    }
                     break;
                 }
             };
+            
             let data = &records[read_size..read_size + len as usize];
+            debug!("Parsing IPFIX message at offset {} with length {} bytes", read_size, len);
+            
+            // Log the first few bytes of the message for debugging
+            if log::log_enabled!(log::Level::Debug) {
+                let hex_preview: String = data.iter().take(32).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+                debug!("Message header preview: {}", hex_preview);
+            }
+            
             let data_message =
                 parse_ipfix_message(&data, cache.templates.clone(), cache.formatter.clone());
             let data_message = match data_message {
-                Ok(message) => message,
+                Ok(message) => {
+                    debug!("Successfully parsed IPFIX message with {} sets", message.sets.len());
+                    message
+                },
                 Err(e) => {
                     warn!("Failed to parse IPFIX data message at offset {}: {}", read_size, e);
+                    // Log more details about the parsing failure
+                    if log::log_enabled!(log::Level::Debug) {
+                        let hex_data: String = data.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+                        // debug!("Failed message data (hex): {}", hex_data);
+                        
+                        // Try to extract basic IPFIX header information even if parsing fails
+                        if data.len() >= 16 {
+                            let version = NetworkEndian::read_u16(&data[0..2]);
+                            let length = NetworkEndian::read_u16(&data[2..4]);
+                            let export_time = NetworkEndian::read_u32(&data[4..8]);
+                            let sequence_number = NetworkEndian::read_u32(&data[8..12]);
+                            let observation_domain_id = NetworkEndian::read_u32(&data[12..16]);
+                            
+                            debug!("IPFIX header info: version={}, length={}, export_time={}, seq={}, domain_id={}", 
+                                   version, length, export_time, sequence_number, observation_domain_id);
+                            
+                            // Check if this might be a template message instead of data message
+                            if data.len() > 16 {
+                                let set_id = NetworkEndian::read_u16(&data[16..18]);
+                                debug!("Set ID: {} (2=template, 3=data)", set_id);
+                            }
+                        }
+                        
+                        // Log available templates for debugging
+                        debug!("Template cache available for parsing");
+                    }
                     read_size += len as usize;
                     continue;
                 }
@@ -546,6 +731,8 @@ impl IpfixActor {
                 }
             });
             let datarecords: Vec<&DataRecord> = data_message.iter_data_records().collect();
+            
+            debug!("Found {} data records in message", datarecords.len());
             
             // Debug log the parsed records if debug logging is enabled
             if log::log_enabled!(log::Level::Debug) {
@@ -716,8 +903,21 @@ fn get_ipfix_message_length(data: &[u8]) -> Result<u16, &'static str> {
     if data.len() < 4 {
         return Err("Data too short for IPFIX header");
     }
+    
     // IPFIX message length is at byte positions 2-3 (0-indexed)
-    Ok(NetworkEndian::read_u16(&data[2..4]))
+    let length = NetworkEndian::read_u16(&data[2..4]);
+    
+    // Validate the length makes sense
+    if length < 16 {
+        return Err("IPFIX message length too short (minimum 16 bytes for header)");
+    }
+    
+    // Check if the length exceeds the available data
+    if length as usize > data.len() {
+        return Err("IPFIX message length exceeds available data");
+    }
+    
+    Ok(length)
 }
 
 #[cfg(test)]

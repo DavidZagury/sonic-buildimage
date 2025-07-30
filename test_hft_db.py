@@ -39,7 +39,7 @@ def create_hft_profile(name:str = "test", status:str="enabled", polling_interval
     run_cmd(f'redis-cli -n 4 hset "HIGH_FREQUENCY_TELEMETRY_PROFILE|{name}" "stream_state" "{status}" "poll_interval" "{polling_interval}"')
 
 
-def create_hft_group(profile_name:str="test", group_name:str="PORT", object_names:str="Ethernet0", object_counters:str="IF_IN_OCTETS"):
+def create_hft_group(profile_name:str="test", group_name:str="PORT", object_names:str="Ethernet24", object_counters:str="IF_IN_OCTETS"):
     run_cmd(f'redis-cli -n 4 hset "HIGH_FREQUENCY_TELEMETRY_GROUP|{profile_name}|{group_name}" "object_names" "{object_names}" "object_counters" "{object_counters}"')
 
 
@@ -102,12 +102,12 @@ def check_asic_db(groups=[(1,1)]):
 
 
     assert len(asic_db["tam"]) == 1, "Expected one tam"
-    assert "SAI_TAM_BIND_POINT_TYPE_PORT" in list(asic_db["tam"].values())[0]["SAI_TAM_ATTR_TAM_BIND_POINT_TYPE_LIST"], "Expected tam to have bind point type list"
+    assert "SAI_TAM_BIND_POINT_TYPE_SWITCH" in list(asic_db["tam"].values())[0]["SAI_TAM_ATTR_TAM_BIND_POINT_TYPE_LIST"], "Expected tam to have bind point type list"
     assert "ASIC_STATE:SAI_OBJECT_TYPE_TAM_TELEMETRY:" + ":".join(list(asic_db["tam"].values())[0]["SAI_TAM_ATTR_TELEMETRY_OBJECTS_LIST"].split(":")[1:3]) in asic_db["tam_telemetry"], "Expected tam to reference tam telemetry"
 
     counters_number = sum([group[0] * group[1] for group in groups])
 
-    assert len(asic_db["tam_counter_subscription"]) == counters_number, "Expected {} tam counter subscription".format(counters_number)
+    assert len(asic_db["tam_counter_subscription"]) == counters_number, "Expected {} tam counter subscription found {}".format(counters_number, len(asic_db["tam_counter_subscription"]))
     for i in range(counters_number):
         assert "ASIC_STATE:SAI_OBJECT_TYPE_TAM_TEL_TYPE:" + list(asic_db["tam_counter_subscription"].values())[i]["SAI_TAM_COUNTER_SUBSCRIPTION_ATTR_TEL_TYPE"] in asic_db["tam_tel_type"], "Expected tam counter subscription to reference tam telemetry"
         assert "ASIC_STATE:SAI_OBJECT_TYPE_PORT:" + list(asic_db["tam_counter_subscription"].values())[i]["SAI_TAM_COUNTER_SUBSCRIPTION_ATTR_OBJECT_ID"] in asic_db["ports"], "Expected tam counter subscription to reference port"
@@ -139,7 +139,7 @@ class TestCalculator(unittest.TestCase):
 
     def test_hft_multiple_counters(self):
         create_hft_profile()
-        create_hft_group(object_names="Ethernet0,Ethernet4,Ethernet8", object_counters="IF_IN_OCTETS,IF_IN_UCAST_PKTS,IF_IN_DISCARDS")
+        create_hft_group(object_names="Ethernet24,Ethernet32,Ethernet56", object_counters="IF_IN_OCTETS,IF_OUT_OCTETS,IF_IN_DISCARDS")
         time.sleep(5)
         check_asic_db(groups=[(3, 3)])
         delete_hft_group()
@@ -148,12 +148,12 @@ class TestCalculator(unittest.TestCase):
 
     def test_hft_delete_group_and_rejoin(self):
         create_hft_profile()
-        create_hft_group(object_names="Ethernet0,Ethernet4,Ethernet8", object_counters="IF_IN_OCTETS,IF_IN_UCAST_PKTS,IF_IN_DISCARDS")
+        create_hft_group(object_names="Ethernet24,Ethernet32,Ethernet56", object_counters="IF_IN_OCTETS,IF_OUT_OCTETS,IF_IN_DISCARDS")
         time.sleep(5)
         check_asic_db(groups=[(3, 3)])
         delete_hft_group()
         check_asic_db(groups=[])
-        create_hft_group(object_names="Ethernet0,Ethernet4,Ethernet8", object_counters="IF_IN_OCTETS,IF_IN_UCAST_PKTS,IF_IN_DISCARDS")
+        create_hft_group(object_names="Ethernet24,Ethernet32,Ethernet56", object_counters="IF_IN_OCTETS,IF_OUT_OCTETS,IF_IN_DISCARDS")
         check_asic_db(groups=[(3, 3)])
         delete_hft_group()
         check_asic_db(groups=[])

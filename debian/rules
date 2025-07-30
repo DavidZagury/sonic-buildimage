@@ -44,7 +44,7 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	dh_auto_build
 	# Build and test countersyncd Rust project
-	cd countersyncd && cargo build --release
+	cd countersyncd && cargo build
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/swss
