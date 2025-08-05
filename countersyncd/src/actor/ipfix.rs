@@ -362,6 +362,55 @@ impl IpfixActor {
         self.saistats_recipients.push_back(recipient);
     }
 
+    /// Checks if a template ID is available in either temporary or applied templates.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `template_id` - The template ID to check
+    /// 
+    /// # Returns
+    /// 
+    /// true if the template is available, false otherwise
+    fn is_template_available(&self, template_id: u16) -> bool {
+        let in_temp = self.temporary_templates_map.contains_key(&template_id);
+        let in_applied = self.applied_templates_map.values().any(|ids| ids.contains(&template_id));
+        debug!("Template availability check for ID {}: temp={}, applied={}", template_id, in_temp, in_applied);
+        in_temp || in_applied
+    }
+
+    /// Extracts template ID from raw IPFIX data for error reporting purposes.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `data` - Raw IPFIX message data
+    /// 
+    /// # Returns
+    /// 
+    /// Some(template_id) if a template ID can be extracted, None otherwise
+    fn extract_template_id_from_data(&self, data: &[u8]) -> Option<u16> {
+        // IPFIX message structure: [Header 16 bytes] [Set ID 2 bytes] [Set Length 2 bytes] [Template ID 2 bytes] ...
+        if data.len() >= 20 {
+            let set_id = NetworkEndian::read_u16(&data[16..18]);
+            debug!("Extracting template ID: set_id={} at offset 16-17", set_id);
+            
+            // For data sets (set_id >= 256), the template ID follows the set length
+            if set_id >= 256 {
+                if data.len() >= 22 {
+                    let template_id = NetworkEndian::read_u16(&data[20..22]);
+                    debug!("Found data set with template ID {} (set_id={})", template_id, set_id);
+                    return Some(template_id);
+                } else {
+                    debug!("Data too short to extract template ID: need 22 bytes, have {}", data.len());
+                }
+            } else {
+                debug!("Set ID {} is not a data set (should be >= 256)", set_id);
+            }
+        } else {
+            debug!("Data too short to extract template ID: need 20 bytes, have {}", data.len());
+        }
+        None
+    }
+
     /// Stores template information temporarily until it's applied to actual data.
     /// 
     /// # Arguments
@@ -369,10 +418,23 @@ impl IpfixActor {
     /// * `msg_key` - Unique key identifying the template message
     /// * `templates` - Parsed IPFIX template message containing template definitions
     fn insert_temporary_template(&mut self, msg_key: &String, templates: Message) {
+        // Store templates in the IPFIX cache first
+        let cache_ref = Self::get_cache();
+        let mut cache = cache_ref.borrow_mut();
+        
+        // The templates are already parsed and should be stored in the cache
+        // The ipfixrw library handles template storage internally when parse_ipfix_message is called
+        // We just need to track which template IDs belong to which message key
+        let mut stored_count = 0;
         templates.iter_template_records().for_each(|record| {
             self.temporary_templates_map
                 .insert(record.template_id, msg_key.clone());
+            debug!("Stored temporary template ID {} for key '{}'", record.template_id, msg_key);
+            stored_count += 1;
         });
+        
+        debug!("Inserted {} templates into temporary map for key '{}', total temporary templates: {}", 
+               stored_count, msg_key, self.temporary_templates_map.len());
     }
 
     /// Moves a template from temporary to applied state when it's used in data records.
@@ -382,6 +444,11 @@ impl IpfixActor {
     /// * `template_id` - ID of the template to apply
     fn update_applied_template(&mut self, template_id: u16) {
         if !self.temporary_templates_map.contains_key(&template_id) {
+            // Check if template is already applied
+            if self.applied_templates_map.values().any(|ids| ids.contains(&template_id)) {
+                debug!("Template ID {} already applied", template_id);
+                return;
+            }
             debug!("Template ID {} not found in temporary templates map", template_id);
             return;
         }
@@ -468,7 +535,23 @@ impl IpfixActor {
             let template = &templates_data[read_size..read_size + len as usize];
             // Parse the template message - if this fails, log error and skip this template
             let new_templates: ipfixrw::parser::Message = match parse_ipfix_message(&template, cache.templates.clone(), cache.formatter.clone()) {
-                Ok(templates) => templates,
+                Ok(templates) => {
+                    let template_count = templates.iter_template_records().count();
+                    debug!("Successfully parsed template message with {} template records", template_count);
+                    
+                    // Log the template IDs that should be stored
+                    let template_ids: Vec<u16> = templates.iter_template_records().map(|r| r.template_id).collect();
+                    debug!("Template IDs in parsed message: {:?}", template_ids);
+                    
+                    // Verify that templates are stored in the ipfixrw cache
+                    let template_store = &*cache.templates.borrow();
+                    for template_id in &template_ids {
+                        let exists = template_store.contains_key(template_id);
+                        debug!("Template ID {} stored in ipfixrw cache: {}", template_id, exists);
+                    }
+                    
+                    templates
+                },
                 Err(e) => {
                     warn!("Failed to parse IPFIX template message for key {}: {}", templates.key, e);
                     read_size += len as usize;
@@ -479,7 +562,8 @@ impl IpfixActor {
             self.insert_temporary_template(&templates.key, new_templates);
             read_size += len as usize;
         }
-        debug!("Template handled successfully for key: {}", templates.key);
+        debug!("Template handled successfully for key: {}, total temporary templates: {}", 
+               templates.key, self.temporary_templates_map.len());
     }
     
     /// Handles template deletion for a given key.
@@ -533,6 +617,23 @@ impl IpfixActor {
         
         // Check if we have any templates available - just log a simple message
         debug!("Processing data records with template cache");
+        
+        // Log available templates for debugging
+        debug!("Available template IDs in temporary map: {:?}", 
+               self.temporary_templates_map.keys().collect::<Vec<_>>());
+        debug!("Available template IDs in applied map: {:?}", 
+               self.applied_templates_map.values().flatten().collect::<Vec<_>>());
+        
+        // Also log what's in the ipfixrw cache
+        let cache_ref = Self::get_cache();
+        let cache = cache_ref.borrow();
+        let template_store = &*cache.templates.borrow();
+        let cache_template_ids: Vec<u16> = template_store.keys().cloned().collect();
+        debug!("Available template IDs in ipfixrw cache: {:?}", cache_template_ids);
+        debug!("Template state summary: temp_map={}, applied_map={}, ipfixrw_cache={}", 
+               self.temporary_templates_map.len(), 
+               self.applied_templates_map.len(), 
+               cache_template_ids.len());
         
         // Skip netlink and genetlink headers (20 bytes total)
         if records.len() < 20 {
@@ -680,6 +781,23 @@ impl IpfixActor {
             let data = &records[read_size..read_size + len as usize];
             debug!("Parsing IPFIX message at offset {} with length {} bytes", read_size, len);
             
+            // Check if required templates are available before parsing
+            let template_id = self.extract_template_id_from_data(data);
+            if let Some(template_id) = template_id {
+                debug!("Pre-parsing check: extracted template ID {} from data", template_id);
+                if !self.is_template_available(template_id) {
+                    warn!("Template ID {} not available for data record at offset {}, skipping", template_id, read_size);
+                    read_size += len as usize;
+                    continue;
+                } else {
+                    debug!("Template ID {} is available, proceeding with parsing", template_id);
+                }
+            } else {
+                debug!("Could not extract template ID from data, proceeding with parsing anyway");
+                // Even if we can't extract the template ID, we should still try to parse
+                // The ipfixrw library will handle the error if the template is missing
+            }
+            
             // Log the first few bytes of the message for debugging
             if log::log_enabled!(log::Level::Debug) {
                 let hex_preview: String = data.iter().take(32).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
@@ -695,11 +813,30 @@ impl IpfixActor {
                 },
                 Err(e) => {
                     warn!("Failed to parse IPFIX data message at offset {}: {}", read_size, e);
+                    
+                    // Check if this is a template availability issue
+                    if let Some(template_id) = self.extract_template_id_from_data(data) {
+                        if !self.is_template_available(template_id) {
+                            warn!("Template ID {} not found in any template maps. Available templates: temp={:?}, applied={:?}", 
+                                  template_id, 
+                                  self.temporary_templates_map.keys().collect::<Vec<_>>(),
+                                  self.applied_templates_map.values().flatten().collect::<Vec<_>>());
+                            
+                            // Check if the template exists in the ipfixrw cache
+                            let cache_ref = Self::get_cache();
+                            let cache = cache_ref.borrow();
+                            let template_store = &*cache.templates.borrow();
+                            let template_exists = template_store.contains_key(&template_id);
+                            warn!("Template ID {} exists in ipfixrw cache: {}", template_id, template_exists);
+                            
+                            if !template_exists {
+                                warn!("Template ID {} missing from ipfixrw cache - this suggests a timing issue or template storage problem", template_id);
+                            }
+                        }
+                    }
+                    
                     // Log more details about the parsing failure
                     if log::log_enabled!(log::Level::Debug) {
-                        let hex_data: String = data.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
-                        // debug!("Failed message data (hex): {}", hex_data);
-                        
                         // Try to extract basic IPFIX header information even if parsing fails
                         if data.len() >= 16 {
                             let version = NetworkEndian::read_u16(&data[0..2]);
@@ -720,6 +857,17 @@ impl IpfixActor {
                         
                         // Log available templates for debugging
                         debug!("Template cache available for parsing");
+                        debug!("Available template IDs in temporary map: {:?}", 
+                               self.temporary_templates_map.keys().collect::<Vec<_>>());
+                        debug!("Available template IDs in applied map: {:?}", 
+                               self.applied_templates_map.values().flatten().collect::<Vec<_>>());
+                        
+                        // Also log what's in the ipfixrw cache
+                        let cache_ref = Self::get_cache();
+                        let cache = cache_ref.borrow();
+                        let template_store = &*cache.templates.borrow();
+                        let cache_template_ids: Vec<u16> = template_store.keys().cloned().collect();
+                        debug!("Available template IDs in ipfixrw cache: {:?}", cache_template_ids);
                     }
                     read_size += len as usize;
                     continue;
@@ -727,6 +875,7 @@ impl IpfixActor {
             };
             data_message.sets.iter().for_each(|set| {
                 if let ipfixrw::parser::Records::Data { set_id, data: _ } = set.records {
+                    debug!("Found data set with template ID {}, applying template", set_id);
                     self.update_applied_template(set_id);
                 }
             });
@@ -818,6 +967,7 @@ impl IpfixActor {
             }
             read_size += len as usize;
         }
+        debug!("Record processing completed, generated {} SAI stats messages", messages.len());
         messages
     }
 
