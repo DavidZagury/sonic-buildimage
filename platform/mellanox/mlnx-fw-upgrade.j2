@@ -20,6 +20,12 @@ declare -r SCRIPT_NAME="$(basename "$0")"
 declare -r SCRIPT_PATH="$(readlink -f "$0")"
 declare -r SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
+{% if PLD_BUILD == "true" %}
+# PLD build - firmware upgrade not supported
+echo "PLD build detected - firmware upgrade is disabled"
+exit 0
+{% endif %}
+
 declare -r LOCKFILE="/tmp/mlxfwmanager-lock"
 
 declare -r YES_PARAM="yes"

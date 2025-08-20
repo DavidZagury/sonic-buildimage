@@ -7,6 +7,13 @@ PACKAGE_NAME = sx_kernel
 
 MLNX_SX_KERNEL_GITHUB_URL_BASE = $(MLNX_SDK_DRIVERS_GITHUB_URL)/archive/refs/heads
 
+# Define debuild flags for easy maintenance
+DEBUILD_FLAGS = -e KVERSION=$(KVERSION) -e KSRC_EXT=/lib/modules/$(KVERSION)/source/
+
+ifeq ($(PLD_BUILD),true)
+DEBUILD_FLAGS += -e "DEB_CFLAGS_SET=-DPD_BU" -e "KCFLAGS=-DPD_BU"
+endif
+
 $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 	# get sources
 
@@ -28,7 +35,7 @@ $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 
 	# build
 
-	debuild -e KVERSION=$(KVERSION) -e KSRC_EXT=/lib/modules/$(KVERSION)/source/ -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
+	debuild $(DEBUILD_FLAGS) -b -us -uc -j$(SONIC_CONFIG_MAKE_JOBS)
 
 	popd
 
