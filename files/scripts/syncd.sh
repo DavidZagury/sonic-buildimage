@@ -77,15 +77,16 @@ function waitplatform() {
 
     BOOT_TYPE=`getBootType`
     if [[ x"$sonic_asic_platform" == x"mellanox" ]]; then
-        PLATFORM=`$SONIC_DB_CLI CONFIG_DB hget 'DEVICE_METADATA|localhost' platform`
-        PMON_IMMEDIATE_START="/usr/share/sonic/device/$PLATFORM/pmon_immediate_start"
-        if [[ x"$BOOT_TYPE" = @(x"fast"|x"warm"|x"fastfast") ]] && [[ ! -f $PMON_IMMEDIATE_START ]]; then
-            debug "PMON service is delayed by for better fast/warm boot performance"
-        else
-            debug "Starting pmon service..."
-            /bin/systemctl start pmon
-            debug "Started pmon service"
-        fi
+        systemctl disable pmon
+        # PLATFORM=`$SONIC_DB_CLI CONFIG_DB hget 'DEVICE_METADATA|localhost' platform`
+        # PMON_IMMEDIATE_START="/usr/share/sonic/device/$PLATFORM/pmon_immediate_start"
+        # if [[ x"$BOOT_TYPE" = @(x"fast"|x"warm"|x"fastfast") ]] && [[ ! -f $PMON_IMMEDIATE_START ]]; then
+        #     debug "PMON service is delayed by for better fast/warm boot performance"
+        # else
+        #     debug "Starting pmon service..."
+        #     /bin/systemctl start pmon
+        #     debug "Started pmon service"
+        # fi
     fi
 }
 
