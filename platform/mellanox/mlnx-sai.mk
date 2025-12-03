@@ -9,13 +9,17 @@ MLNX_SAI_DEB_VERSION = $(subst -,.,$(subst _,.,$(MLNX_SAI_VERSION)))
 # Place here URL where SAI sources exist
 MLNX_SAI_SOURCE_BASE_URL = 
 
-ifneq ($(MLNX_SAI_SOURCE_BASE_URL), )
-SAI_FROM_SRC = y
-else
-SAI_FROM_SRC = n
-endif
+# Optional local file path. If set, it will be used instead of downloading from the remote server.
+# Note: When using a local SAI file, DOCKER_BUILDER_USER_MOUNT must also be configured to ensure 
+# the file is mounted inside the docker build environment.
+# Example:
+# DOCKER_BUILDER_USER_MOUNT = /auto/local_build:/auto/local_build:rslave
+MLNX_LOCAL_SAI_FILE ?= 
 
-export MLNX_SAI_VERSION MLNX_SAI_SOURCE_BASE_URL
+# Set SAI_FROM_SRC based on source availability
+SAI_FROM_SRC = $(if $(or $(MLNX_SAI_SOURCE_BASE_URL),$(MLNX_LOCAL_SAI_FILE)),y,n)
+
+export MLNX_SAI_VERSION MLNX_SAI_SOURCE_BASE_URL MLNX_LOCAL_SAI_FILE
 
 MLNX_SAI = mlnx-sai_1.mlnx.$(MLNX_SAI_VERSION)_$(CONFIGURED_ARCH).deb
 $(MLNX_SAI)_SRC_PATH = $(PLATFORM_PATH)/mlnx-sai
