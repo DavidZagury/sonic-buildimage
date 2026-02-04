@@ -7,7 +7,12 @@ DERIVED_TARGETS = mlnx-sai-dbgsym_1.mlnx.$(MLNX_SAI_VERSION)_$(CONFIGURED_ARCH).
 
 $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 	rm -rf mlnx_sai
-	wget -c $(MLNX_SAI_SOURCE_BASE_URL)/$(MLNX_SAI_VERSION).tar.gz -O - | tar -xz
+	if [ -n "$(MLNX_LOCAL_SAI_FILE)" ] && [ -f "$(MLNX_LOCAL_SAI_FILE)" ]; then
+		echo "Using local SAI file: $(MLNX_LOCAL_SAI_FILE)"
+		tar -xzf $(MLNX_LOCAL_SAI_FILE)
+	else
+		wget -c $(MLNX_SAI_SOURCE_BASE_URL)/$(MLNX_SAI_VERSION).tar.gz -O - | tar -xz
+	fi
 	pushd mlnx_sai
 
 	debuild -e 'make_extra_flags="DEFS=-DACS_OS -DCONFIG_SYSLOG"' -us -uc -d -b
