@@ -81,6 +81,10 @@ class LldpManager(daemon_base.DaemonBase):
         self.port_init_done = False
 
     def update_hostname(self, hostname):
+        if not hostname:
+            self.log_error("Hostname is not defined")
+            sys.exit(1)
+
         cmd = ["lldpcli", "configure", "system", "hostname", hostname]
         self.log_debug("Running command: '{}'".format(cmd))
 
