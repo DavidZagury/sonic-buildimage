@@ -470,7 +470,11 @@ endif
 # armhf: no hardware control-flow protection available.
 
 # Linker hardening not covered by dpkg's hardening feature set (OpenSSF baseline).
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,nodlopen -Wl,-z,noexecstack \
+# NOTE: -Wl,-z,nodlopen is intentionally NOT used. It sets the ELF DF_1_NOOPEN
+# flag, which makes the shared object impossible to dlopen(). Since it is applied
+# globally, it breaks every Python C-extension (loaded via dlopen), e.g.
+# python3-libyang fails at import with "shared object cannot be dlopen()ed".
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,noexecstack \
     -Wl,--as-needed
 
 ###############################################################################

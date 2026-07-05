@@ -1,0 +1,32 @@
+From 1f4e6dd6a75cab35a226b43b73a8fb973e074904 Mon Sep 17 00:00:00 2001
+From: David Zagury <davidza@nvidia.com>
+Date: Sun, 5 Jul 2026 10:24:23 +0300
+Subject: [PATCH] iproute2: use C99 flexible array member in nsid_cache
+
+The legacy zero-length array 'char name[0]' is treated as a genuine
+size-0 object by -fstrict-flex-arrays=3 (OpenSSF hardening baseline),
+causing _FORTIFY_SOURCE to reject the strcpy() in netns_map_add() with
+-Werror=stringop-overflow=. Use a proper C99 flexible array member so
+the compiler recognizes the trailing variable-length buffer.
+
+Signed-off-by: David Zagury <davidza@nvidia.com>
+---
+ ip/ipnetns.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ip/ipnetns.c b/ip/ipnetns.c
+index 1203534..ad2da40 100644
+--- a/ip/ipnetns.c
++++ b/ip/ipnetns.c
+@@ -157,7 +157,7 @@ struct nsid_cache {
+ 	struct hlist_node	nsid_hash;
+ 	struct hlist_node	name_hash;
+ 	int			nsid;
+-	char			name[0];
++	char			name[];
+ };
+ 
+ #define NSIDMAP_SIZE		128
+-- 
+2.54.0
+

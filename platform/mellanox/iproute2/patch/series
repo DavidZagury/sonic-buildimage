@@ -1,3 +1,4 @@
 0001-Remove-arpd-from-iproute2-package.patch
 0002-Rename-iproute2-debian-package.patch
+0003-iproute2-use-C99-flexible-array-member-in-nsid_cache.patch
 
