@@ -40,3 +40,10 @@ endif
 $(DOCKER_SYNCD_BASE)_VERSION = 1.0.0
 $(DOCKER_SYNCD_BASE)_PACKAGE_NAME = syncd
 
+# Grant device-cgroup access previously provided implicitly by --privileged.
+# The SX SDK opens the sx_core char device (/dev/sxdevs/sxcdev, major 231) and
+# phcsync opens the PTP clock device (/dev/ptp*, dynamically-allocated major).
+# A blanket rule mirrors the Broadcom SOC-init fix and covers the dynamic PTP
+# major; the node itself is bind-mounted (multi-ASIC) or created via mknod.
+$(DOCKER_SYNCD_BASE)_RUN_OPT += --device-cgroup-rule='a *:* rwm'
+
